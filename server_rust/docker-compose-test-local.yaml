@@ -1,0 +1,66 @@
+version: "3.4"
+services:
+  rust-tests:
+    container_name: "rust-tests"
+    command: sh -c /app/entrypoint_test.sh
+    build:
+      dockerfile: Dockerfile.test
+      context: .
+      cache_from:
+        - rust:1.42.0
+    links:
+      - rabbit
+      - postgres
+      - redis
+    depends_on:
+      - rabbit
+      - postgres
+      - redis
+    env_file:
+      - config/.env.http-gateway
+    networks:
+      - rust-tests
+    tty: true
+    volumes:
+      - type: bind
+        source: ../server/db
+        target: /app/db
+      - type: bind
+        source: ./
+        target: /app
+    ports:
+      - "10001:10001"
+
+  # Middleware
+  postgres:
+    image: postgres:12
+    env_file: 
+      - config/.env.postgres      
+    networks:
+      - rust-tests
+    ports:
+      - "5432:5432"
+  
+  rabbit:
+    image: "rabbitmq:3-management"
+    env_file: 
+      - config/.env.rabbit     
+    networks:
+      - rust-tests
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  redis:
+    image: redis:5.0.6-alpine
+    container_name: redis_http_gateway_v2_cache
+    expose:
+      - 6379
+    networks:
+      - rust-tests
+    ports:
+      - "6379:6379"
+
+networks:
+  rust-tests:
+    driver: bridge

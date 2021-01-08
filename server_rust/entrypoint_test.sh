@@ -1,0 +1,2 @@
+echo "hi"
+/bin/bash
