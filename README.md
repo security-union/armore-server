@@ -1,4 +1,4 @@
-## RescueLink
+## Armore
 
 La misión de Rescuelink es ayudarnos a cuidar a nuestros seres queridos cuando no estamos juntos.
 
