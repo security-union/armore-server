@@ -23,7 +23,7 @@ Within the `server` top folder.
 ```
 [
 {
-  "deviceId": "D1617C36-D805-4FD8-AE6D-EBC57AF5FBCD",
+  "deviceId": "Device1",
    "data": {
      "custom": {
          "data": {
@@ -44,7 +44,7 @@ Within the `server` top folder.
 
 ```
 [{
-  "deviceId": "D1617C36-D805-4FD8-AE6D-EBC57AF5FBCD",
+  "deviceId": "Device2",
   "data": {
      "contentAvailable": true,
       "silent": true,
