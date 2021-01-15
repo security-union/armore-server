@@ -16,14 +16,25 @@ services:
       - rabbit
       - postgres
       - redis
-    env_file:
-      - config/.env.http-gateway
+    environment:
+      - SERVICE_NAME=http_gateway
+      - RABBITMQ_USER=rabbitmq
+      - RABBITMQ_PASS=rabbitmq
+      - RABBITMQ_HOST=rabbit
+      - RABBITMQ_VHOST=staging
+      - PG_USER="postgres"
+      - PG_PASS="docker"
+      - PG_HOST="postgres"
+      - PG_PORT=5432
+      - PG_DB="garage"
+      - PG_URL=postgres://postgres:docker@postgres:5432/armore?sslmode=disable
+      - REDIS_URL=redis://redis
     networks:
       - rust-tests
     tty: true
     volumes:
       - type: bind
-        source: ../server/db
+        source: ../dbmate/db
         target: /app/db
       - type: bind
         source: ./
@@ -34,8 +45,9 @@ services:
   # Middleware
   postgres:
     image: postgres:12
-    env_file: 
-      - config/.env.postgres      
+    environment:
+      POSTGRES_PASSWORD: "docker"
+      PGPASSWORD: "docker"
     networks:
       - rust-tests
     ports:
@@ -43,8 +55,11 @@ services:
   
   rabbit:
     image: "rabbitmq:3-management"
-    env_file: 
-      - config/.env.rabbit     
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "staging"
     networks:
       - rust-tests
     ports:

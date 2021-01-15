@@ -1,0 +1,44 @@
+version: "3"
+services:
+    test:
+        command: /bin/sh
+        build:
+            context: .
+            cache_from:
+                - node:15-alpine
+        ports:
+            - 9080
+        depends_on:
+            - rabbit
+            - postgres
+        environment:
+            SERVICE_NAME: "ws_gateway"
+            RABBITMQ_USER: "rabbitmq"
+            RABBITMQ_PASS: "rabbitmq"
+            RABBIT_MQ_HOST: "rabbit"
+            RABBITMQ_VHOST: "staging"
+            DATABASE_URL: "postgres://postgres:docker@postgres:5432/armore?sslmode=disable"
+            BETA_SIGNUP_SLACK_WEBHOOK_URL: "yolo"
+        volumes:
+            - ./:/app
+            - ../dbmate/db:/app/db
+
+    # Middleware
+    postgres:
+        image: postgres:12
+        environment:
+            POSTGRES_PASSWORD: "docker"
+            PGPASSWORD: "docker"
+        ports:
+            - 5432
+
+    rabbit:
+        image: "rabbitmq:3-management"
+        environment:
+            RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+            RABBITMQ_DEFAULT_USER: "rabbitmq"
+            RABBITMQ_DEFAULT_PASS: "rabbitmq"
+            RABBITMQ_DEFAULT_VHOST: "staging"
+        ports:
+            - 15672
+            - 5672

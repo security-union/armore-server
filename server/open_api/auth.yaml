@@ -1,0 +1,420 @@
+openapi: 3.0.2
+
+servers:
+    - description: RescueLink API Prod URL
+      url: https://auth.armore.dev
+    - description: RescueLink API Staging URL
+      url: https://auth.staging.armore.dev
+    - description: RescueLink API Dev URL
+      url: http://localhost:10000
+info:
+    version: "1.0.0"
+    title: RescueLink
+    description: Authentication API
+paths:
+    /login:
+        post:
+            tags:
+                - Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Credentials"
+            responses:
+                "200":
+                    description: Succesfully authenticated
+                    headers:
+                        asimovlives:
+                            schema:
+                                type: string
+                            description: token
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ProvisionalAuthResponse"
+                            example:
+                                result:
+                                    message: "Please check your email"
+                                success: true
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ProvisionalAuthResponse"
+                            example:
+                                result:
+                                    message: "Invalid account"
+                                success: false
+
+    /register:
+        post:
+            tags:
+                - Registration
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RegisterRequest"
+
+            responses:
+                "200":
+                    description: Successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ProvisionalAuthResponse"
+                            example:
+                                result:
+                                    message: "Success"
+                                success: true
+
+    /me:
+        get:
+            tags:
+                - User Info
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MeResponse"
+
+        put:
+            description: Update user profile, currently, only the profile image is supported.
+            tags:
+                - User Info
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateProfileRequest"
+
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MeResponse"
+
+        patch:
+            description: Update user profile, currently, only the profile image is supported.
+            tags:
+                - User Info
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateProfileRequest"
+
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MeResponse"
+
+    /me/devices/{deviceId}:
+        delete:
+            tags:
+                - Device Management
+            description: Endpoint used to delete a device from an account
+            parameters:
+                - name: deviceId
+                  in: path
+                  required: true
+                  description: the id of the device to delete
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: Successfully deleted
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DeleteDeviceResponse"
+                            example:
+                                result:
+                                    message: "Success, the device was deleted."
+                                success: true
+
+    /user/exists/{emailOrPhone}:
+        get:
+            tags:
+                - User Verification
+            description: Check if a user already exists in our system with this email address
+            parameters:
+                - name: emailOrPhone
+                  in: path
+                  required: true
+                  description: the email or phone number to check for existence
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Email or phone number exists in our system
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserExistsResponse"
+                            example:
+                                result:
+                                    exists: true
+                                success: true
+                "201":
+                    description: Email or phone number does not exist in our system
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserExistsResponse"
+                            example:
+                                result:
+                                    exists: false
+                                success: true
+
+    /user/verify/{emailOrPhone}:
+        post:
+            tags:
+                - User Verification
+            description: Used to verify account ownership
+            parameters:
+                - name: emailOrPhone
+                  in: path
+                  required: true
+                  description: the email or phone of the user
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/VerifyAccountRequest"
+            responses:
+                "200":
+                    description: Successfully verified account ownership
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/VerifyAccountSuccessResponse"
+                            example:
+                                result:
+                                    username: "dario234234234234"
+                                success: true
+
+components:
+    schemas:
+        Credentials:
+            type: object
+            required: [publicKey]
+            properties:
+                email:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                phoneNumber:
+                    type: string
+                    minLength: 3
+                    maxLength: 25
+                publicKey:
+                    description: public key
+                    type: string
+                    minLength: 3
+                    maxLength: 500000
+
+        APIResponse:
+            type: object
+            required: [success, result]
+            properties:
+                success:
+                    type: boolean
+                result:
+                    type: object
+
+        VerifyAccountSuccessResponse:
+            allOf:
+                - $ref: "#/components/schemas/APIResponse"
+                - type: object
+                  properties:
+                      result:
+                          type: object
+                          properties:
+                              userrname:
+                                  description: Username of the logged user
+                                  type: string
+                                  minLength: 3
+                                  maxLength: 500
+
+        ProvisionalAuthResponse:
+            allOf:
+                - $ref: "#/components/schemas/APIResponse"
+                - type: object
+                  properties:
+                      result:
+                          type: object
+                          required: [message]
+                          properties:
+                              asimovlives:
+                                  description: Debug message
+                                  type: string
+                                  minLength: 3
+                                  maxLength: 250
+
+        DeleteDeviceResponse:
+            allOf:
+                - $ref: "#/components/schemas/APIResponse"
+                - type: object
+                  properties:
+                      result:
+                          type: object
+                          required: [message]
+                          properties:
+                              message:
+                                  description: Success message
+                                  type: string
+                                  minLength: 3
+                                  maxLength: 250
+
+        UserExistsResponse:
+            allOf:
+                - $ref: "#/components/schemas/APIResponse"
+                - type: object
+                  properties:
+                      result:
+                          type: object
+                          required: [exists]
+                          properties:
+                              exists:
+                                  description: Whether an email or phone number exists in our system or not
+                                  type: boolean
+
+        ErrorLoginResponse:
+            allOf:
+                - $ref: "#/components/schemas/APIResponse"
+                - type: object
+                  properties:
+                      result:
+                          type: object
+                          required: [message]
+                          properties:
+                              message:
+                                  type: string
+                                  description: error message.
+
+        UpdateProfileRequest:
+            type: object
+            required: [picture]
+            properties:
+                picture:
+                    description: base64 string with user image, use `cat Dario.jpg | base64 -w 0` to produce images.
+                    type: string
+                    minLength: 3
+                    maxLength: 500000
+
+        RegisterRequest:
+            type: object
+            required: [username, password, email, firstName, lastName, picture, publicKey]
+            properties:
+                username:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                email:
+                    type: string
+                    minLength: 3
+                    maxLength: 250
+                phoneNumber:
+                    type: string
+                    minLength: 3
+                    maxLength: 25
+                firstName:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                lastName:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                picture:
+                    description: base64 string with user image, use `cat Dario.jpg | base64 -w 0` to produce images.
+                    type: string
+                    minLength: 3
+                    maxLength: 500000
+                publicKey:
+                    description: public key
+                    type: string
+                    minLength: 3
+                    maxLength: 500000
+
+        MeResponse:
+            type: object
+            properties:
+                result:
+                    required: [username, firstName, lastName, email]
+                    type: object
+                    properties:
+                        username:
+                            type: string
+                        firstName:
+                            type: string
+                        lastName:
+                            type: string
+                        email:
+                            type: string
+                        picture:
+                            type: string
+
+        VerifyAccountRequest:
+            type: object
+            properties:
+                code:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                deviceId:
+                    type: string
+                    minLength: 10
+                    maxLength: 255
+                os:
+                    type: string
+                    minLength: 3
+                    maxLength: 255
+                osVersion:
+                    type: string
+                    minLength: 10
+                    maxLength: 255
+                model:
+                    type: string
+                    minLength: 5
+                    maxLength: 255
+                publicKey:
+                    description: public key
+                    type: string
+                    minLength: 3
+                    maxLength: 500000
+                deletePreviousDevice:
+                    description: should delete all previous registered devices
+                    type: boolean

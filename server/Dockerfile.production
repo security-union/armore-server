@@ -1,0 +1,18 @@
+FROM node:12.14.1-alpine
+
+ENV NPM_CONFIG_LOGLEVEL=http
+
+WORKDIR /app
+
+COPY src /app/src/
+COPY package.json .
+COPY tsconfig.json .
+COPY tslint.json .
+COPY yarn.lock .
+COPY .npmrc .
+
+RUN yarn cache clean && \
+    yarn install && \
+    yarn build 
+
+STOPSIGNAL SIGINT

@@ -1,5 +1,6 @@
 #![feature(iterator_fold_self)]
 #![feature(result_flattening)]
+#![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use]
 extern crate log;
 /**
@@ -15,15 +16,22 @@ extern crate log;
  * limitations under the License.
  */
 #[macro_use]
+extern crate rocket;
+#[macro_use]
 extern crate rocket_contrib;
 #[macro_use(lazy_static)]
 extern crate lazy_static;
 
+pub mod invitations;
+pub mod emergency;
+pub mod http_gateway;
+
 pub mod auth;
 pub mod constants;
 pub mod cors;
+pub mod catchers;
 pub mod db;
-pub mod dbmate;
+
 pub mod model;
 pub mod publish_websocket_messages;
 pub mod slack;

@@ -1,0 +1,271 @@
+openapi: 3.0.0
+
+servers:
+    - description: Armore API
+      url: https://api.armore.dev
+    - description: Armore API Staging URL
+      url: https://api.staging.armore.dev
+    - description: Armore API Dev URL
+      url: http://localhost:10002
+
+info:
+    version: "1.0.0"
+    title: Link Invitations API
+    description: Rest API to manage invitations of Armore users.
+    license:
+        name: Apache 2.0
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    contact:
+        name: API Support
+        email: support@armore.dev
+
+paths:
+    /v1/invitations:
+        post:
+            summary: Creates a new invitation and returns the link
+            tags:
+                - Commands
+            parameters:
+                - $ref: "#/components/parameters/AsimovLives"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/NewInvitationReq"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/NewInvitationResponse"
+                                    - $ref: "#/components/schemas/APIJsonResponse"
+                            example:
+                                result:
+                                    link: https://armore.dev/invitations/akshf-asdg-asifh
+                                success: true
+                "403":
+                    $ref: "#/components/responses/Unauthorized"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /v1/invitations/{id}/reject:
+        post:
+            summary: Reject an invitation
+            tags:
+                - Commands
+            parameters:
+                - $ref: "#/components/parameters/AsimovLives"
+                - $ref: "#/components/parameters/InvitationId"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/InvitationActionResponse"
+                                    - $ref: "#/components/schemas/APIJsonResponse"
+                            example:
+                                result:
+                                    message: Ok
+                                success: true
+                "403":
+                    $ref: "#/components/responses/Unauthorized"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /v1/invitations/{id}/accept:
+        post:
+            summary: Accept an invitation
+            tags:
+                - Commands
+            parameters:
+                - $ref: "#/components/parameters/AsimovLives"
+                - $ref: "#/components/parameters/InvitationId"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/InvitationActionResponse"
+                                    - $ref: "#/components/schemas/APIJsonResponse"
+                            example:
+                                result:
+                                    message: Ok
+                                success: true
+                "403":
+                    $ref: "#/components/responses/Unauthorized"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /v1/invitations/remove/{username}:
+        delete:
+            summary: Remove a friend
+            tags:
+                - Commands
+            parameters:
+                - $ref: "#/components/parameters/AsimovLives"
+                - $ref: "#/components/parameters/Username"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/InvitationActionResponse"
+                                    - $ref: "#/components/schemas/APIJsonResponse"
+                            example:
+                                result:
+                                    message: Ok
+                                success: true
+                "403":
+                    $ref: "#/components/responses/Unauthorized"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+    /v1/invitations/{id}/creator:
+        get:
+            summary: Get the invitation creator
+            tags:
+                - Commands
+            parameters:
+                - $ref: "#/components/parameters/AsimovLives"
+                - $ref: "#/components/parameters/InvitationId"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/GetCreatorResponse"
+                                    - $ref: "#/components/schemas/APIJsonResponse"
+                            example:
+                                result:
+                                    firstName: Victor
+                                    lastName: Martinez
+                                success: true
+                "403":
+                    $ref: "#/components/responses/Unauthorized"
+                "404":
+                    $ref: "#/components/responses/NotFound"
+
+components:
+    schemas:
+        NewInvitationResponse:
+            type: object
+            required: [success, result]
+            properties:
+                success:
+                    type: boolean
+                result:
+                    type: object
+                    properties:
+                        link:
+                            type: string
+
+        InvitationActionResponse:
+            type: object
+            required: [success, result]
+            properties:
+                success:
+                    type: boolean
+                result:
+                    type: object
+                    properties:
+                        message:
+                            type: string
+
+        NewInvitationReq:
+            type: object
+            required: [expirationDate]
+            properties:
+                expirationDate:
+                    type: string
+
+        GetCreatorResponse:
+            type: object
+            required: [firstName, lastName]
+            properties:
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+
+        ApiError:
+            type: object
+            required: [success, result]
+            properties:
+                success:
+                    type: boolean
+                result:
+                    type: object
+                    required: [message, engineeringError]
+                    properties:
+                        message:
+                            type: string
+                        engineeringError:
+                            type: string
+
+        APIJsonResponse:
+            type: object
+            required: [json, status]
+            properties:
+                json:
+                    $ref: "#/components/schemas/ApiError"
+                status:
+                    type: string
+
+    responses:
+        NotFound:
+            description: The specified resource was not found
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ApiError"
+                    example:
+                        success: false
+                        result:
+                            message: "string"
+                            engineeringError: "string"
+
+        Unauthorized:
+            description: Unauthorized
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ApiError"
+                    example:
+                        success: false
+                        result:
+                            message: "string"
+                            engineeringError: "string"
+
+    parameters:
+        InvitationId:
+            name: id
+            in: path
+            description: Invitation uuid
+            required: true
+            schema:
+                type: string
+
+        Username:
+            name: username
+            in: path
+            description: Armore user username
+            required: true
+            schema:
+                type: string
+
+        AsimovLives:
+            in: header
+            name: asimovlives
+            schema:
+                type: string
+            required: true
