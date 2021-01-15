@@ -63,7 +63,7 @@ export const PG_HOST = process.env.PG_HOST || "postgres";
 export const PG_PORT = getIntOrDefault("PG_PORT", 5432);
 export const PG_DB = process.env.PG_DB || "garage";
 export const PG_URL =
-    process.env.PG_URL || "postgres://postgres:docker@postgres:5432/rescuelink?sslmode=disable";
+    process.env.PG_URL || "postgres://postgres:docker@postgres:5432/armore?sslmode=disable";
 
 /**
  * Mail
