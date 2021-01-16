@@ -44,7 +44,7 @@ jobs:
           RABBITMQ_VHOST: test
           DATABASE_URL: postgres://postgres:docker@postgres:5432/armore-test?sslmode=disable
           BETA_SIGNUP_SLACK_WEBHOOK_URL: yolo
-        run: cd nodejs && yarn test-backend
+        run: cd nodejs && cp -R ../dbmate/db ./ && yarn test-backend
 
   test_rust:
     if: github.event.label.name == 'Rust-Integration-Test'
