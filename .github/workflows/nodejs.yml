@@ -1,12 +1,9 @@
 name: NodeJS
 
-on:
-  pull_request:
-    types:
-      - labeled
+on: push
+
 jobs:
   test:
-    if: github.event.label.name == 'NodeJS-Integration-Test'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container: node:12.14.1-alpine

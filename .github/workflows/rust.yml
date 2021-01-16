@@ -1,12 +1,9 @@
 name: Rust
 
-on:
-  pull_request:
-    types:
-      - labeled
+on: push
+
 jobs:
   test:
-    if: github.event.label.name == 'Rust-Integration-Test'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container: rust:1.42.0
