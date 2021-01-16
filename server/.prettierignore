@@ -1,0 +1,10 @@
+dist
+node_modules
+armore-chart
+redis
+k8s-config
+devops
+geofence
+design
+device_simulator
+server_rust

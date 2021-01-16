@@ -1,0 +1,862 @@
+openapi: 3.0.0
+
+servers:
+    - description: Armore API
+      url: https://api.armore.dev
+    - description: Armore API Staging URL
+      url: https://api.staging.armore.dev
+    - description: Armore API Dev URL
+      url: http://localhost:8081
+
+info:
+    version: "1.0.0"
+    title: Armore
+    description: Rest API to interact with the devices and server.
+
+paths:
+    /me/state/{newState}:
+        post:
+            tags:
+                - User State
+            description: AChange user state
+            parameters:
+                - name: newState
+                  in: path
+                  required: true
+                  description: the new user state
+                  schema:
+                      $ref: "#/components/schemas/UserState"
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: State Changed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "State changed"
+                                success: true
+
+    /me/connections/following/{username}/telemetry:
+        get:
+            tags:
+                - Commands
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+                - in: path
+                  name: username
+                  required: true
+                  description: the new user state
+                  schema:
+                      type: string
+                - in: query
+                  name: startTime
+                  schema:
+                      type: string
+                      format: date-time
+                  required: true
+                - in: query
+                  name: endTime
+                  schema:
+                      type: string
+                      format: date-time
+                  required: true
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/HistoricalTelemetryResponse"
+                            example:
+                                result:
+                                    success: true
+                                    result:
+                                        - data: "base64 encrypted data"
+                                          timestamp: "2019-12-11T00:49:58.642Z"
+                                          deviceId: "ca879552fedeb072"
+                                        - data: "base64 encrypted data"
+                                          timestamp: "2019-12-11T00:50:13.118Z"
+                                          deviceId: "ca879552fedeb072"
+
+    /me/connections/following/{username}:
+        delete:
+            tags:
+                - User State
+            description: AChange user state
+            parameters:
+                - name: username
+                  in: path
+                  required: true
+                  description: the user to delete
+                  schema:
+                      type: string
+                - in: header
+                  required: true
+                  name: asimovlives
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: State Changed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "State changed"
+                                success: true
+
+    /me/connections/followers/{username}:
+        delete:
+            tags:
+                - User State
+            description: AChange user state
+            parameters:
+                - name: username
+                  in: path
+                  required: true
+                  description: the new user state
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: State Changed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "State changed"
+                                success: true
+
+    /me/connections/followers/{username}/accessType/{newAccessType}:
+        post:
+            tags:
+                - User State
+            description: Change follower access
+            parameters:
+                - name: username
+                  in: path
+                  required: true
+                  description: the user to modify
+                  schema:
+                      type: string
+                - name: newAccessType
+                  in: path
+                  required: true
+                  description: the new accessType
+                  schema:
+                      $ref: "#/components/schemas/AccessType"
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: State Changed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Access changed"
+                                success: true
+
+    /devices:
+        get:
+            tags:
+                - Device Management
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GetDevicesAPIResponse"
+                            example:
+                                result:
+                                    mine:
+                                        - deviceId: dario_garage
+                                          role: garage_door
+                                          name: RaspberryPI 3
+                                        - deviceId: dario_garage_2
+                                          role: garage_door
+                                          name: RaspberryPI 3
+                                        - deviceId: dario_garage_3
+                                          role: garage_door
+                                          name: RaspberryPI 3
+                                success: true
+    /invitations:
+        post:
+            tags:
+                - Invitations
+            description: Used to create an invitation to use a device.
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationRequest"
+            responses:
+                "200":
+                    description: Invitation created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Invitation created"
+                                success: true
+
+                "409":
+                    description: Unable to send invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unable to send invitation"
+                                success: false
+
+        get:
+            tags:
+                - Invitations
+            description: Get pending invitations for a given user.
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Get Invitations
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIGetInvitationsResponse"
+                            example:
+                                result:
+                                    sent: []
+                                    received: []
+                                success: true
+
+                "409":
+                    description: Unable to send invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unable to send invitation"
+                                success: false
+
+    /invitations/{id}/accept:
+        post:
+            tags:
+                - Invitations
+            description: Accept a pending invitation.
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  description: the invitation identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Invitation created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Invitation accepted"
+                                success: true
+
+                "409":
+                    description: Unable to accept invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unable to accept invitation"
+                                success: false
+
+    /invitations/{id}/reject:
+        post:
+            tags:
+                - Invitations
+            description: Reject a pending invitation. Only the target user can reject it.
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  description: the invitation identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Invitation rejected
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Invitation rejected"
+                                success: true
+
+                "409":
+                    description: Unable to send invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unable to reject invitation"
+                                success: false
+
+    /invitations/{id}/cancel:
+        post:
+            tags:
+                - Invitations
+            description: Cancel a pending invitation. Only the creator can cancel an invitation.
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  description: the invitation identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Invitation canceled
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Invitation canceled"
+                                success: true
+
+                "409":
+                    description: Unable to send invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unable to cancel invitation"
+                                success: false
+
+    /image/{image}:
+        get:
+            summary: Gets the specified image
+            parameters:
+                - name: image
+                  in: path
+                  required: true
+                  description: the image identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        image/jpeg:
+                            schema:
+                                type: object
+
+    /geofences:
+        summary: Managing users geofences and geofence subscriptions
+        post:
+            tags:
+                - Geofences
+            description: Create a geofence for the specified username
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/GeofenceRequest"
+            responses:
+                "200":
+                    description: Successfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Created geofence"
+                                    geofenceId: "4"
+                                success: true
+
+        get:
+            tags:
+                - Geofences
+            summary: Gets your geofences and the ones you are subscribed to
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Successfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+
+    /geofences/subscribe/{geofenceId}:
+        post:
+            tags:
+                - Geofences
+            summary: Subscribe to a users geofence
+            parameters:
+                - name: geofenceId
+                  in: path
+                  required: true
+                  description: the geofence identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: subscribed to geofence
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "subscribed to geofence"
+                                success: true
+
+    /geofences/unsubscribe/{geofenceId}:
+        post:
+            tags:
+                - Geofences
+            summary: Unsubscribe from a users geofence
+            parameters:
+                - name: geofenceId
+                  in: path
+                  required: true
+                  description: the geofence identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Unsubscribed from geofence
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unsubscribed from geofence"
+                                success: true
+
+    /geofences/{geofenceId}:
+        delete:
+            tags:
+                - Geofences
+            summary: Delete your geofence
+            parameters:
+                - name: geofenceId
+                  in: path
+                  required: true
+                  description: the geofence identifier
+                  schema:
+                      type: string
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            responses:
+                "200":
+                    description: Deleted geofence
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Deleted geofence"
+                                success: true
+
+                "403":
+                    description: Unable to delete geofence
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/APIResponse"
+                            example:
+                                result:
+                                    message: "Unable to delete geofence"
+                                success: false
+
+components:
+    schemas:
+        Access:
+            type: object
+            required: [device, owner]
+            properties:
+                device:
+                    $ref: "#/components/schemas/Device"
+                owner:
+                    $ref: "#/components/schemas/User"
+                calendarAccess:
+                    $ref: "#/components/schemas/CalendarAccess"
+                permanentAccess:
+                    type: boolean
+
+        DeviceAccess:
+            type: object
+            required: [device, owner, guest]
+            properties:
+                device:
+                    $ref: "#/components/schemas/Device"
+                owner:
+                    $ref: "#/components/schemas/User"
+                guest:
+                    $ref: "#/components/schemas/User"
+                calendarAccess:
+                    $ref: "#/components/schemas/CalendarAccess"
+                permanentAccess:
+                    type: boolean
+
+        AccessRequest:
+            type: object
+            required: [device]
+            properties:
+                deviceId:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                calendarAccess:
+                    $ref: "#/components/schemas/CalendarAccess"
+                permanentAccess:
+                    type: boolean
+
+        APIResponse:
+            type: object
+            required: [result, success]
+            properties:
+                result:
+                    type: object
+                success:
+                    type: boolean
+
+        CalendarAccess:
+            type: object
+            required: [startDate, endDate]
+            properties:
+                startDate:
+                    type: integer
+                    description: Unix time in milliseconds. https://en.wikipedia.org/wiki/Unix_time
+                endDate:
+                    type: integer
+                    description: Unix time in milliseconds. https://en.wikipedia.org/wiki/Unix_time
+
+        InvitationRequest:
+            type: object
+            required: [target_username]
+            properties:
+                targetEmail:
+                    type: string
+                invitation:
+                    $ref: "#/components/schemas/AccessRequest"
+                type:
+                    $ref: "#/components/schemas/InvitationType"
+
+        Invitation:
+            type: object
+            required: [id, creator_username, target_username]
+            properties:
+                id:
+                    type: string
+                creatorUsername:
+                    type: string
+                creator:
+                    $ref: "#/components/schemas/UserDetails"
+                targetEmail:
+                    type: string
+                status:
+                    $ref: "#/components/schemas/InvitationStatus"
+                invitation:
+                    $ref: "#/components/schemas/Access"
+                creationTimestamp:
+                    type: number
+                updateTimestamp:
+                    type: number
+                type:
+                    $ref: "#/components/schemas/InvitationType"
+
+        InvitationType:
+            type: string
+            enum: [device, follower]
+
+        InvitationStatus:
+            type: string
+            enum: [created, accepted, rejected, canceled]
+
+        UserState:
+            type: string
+            enum: [Normal, Emergency]
+
+        AccessType:
+            type: string
+            enum: [Permanent, EmergencyOnly]
+
+        UserConnection:
+            type: object
+            properties:
+                userDetails:
+                    $ref: "#/components/schemas/UserDetails"
+                state:
+                    $ref: "#/components/schemas/UserState"
+                accessType:
+                    $ref: "#/components/schemas/AccessType"
+                devices:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TelemetryDevice"
+
+        UserDetails:
+            type: object
+            required: [firstName, lastName, email, username]
+            properties:
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+                email:
+                    type: string
+                username:
+                    type: string
+                picture:
+                    type: string
+
+        TelemetryDevice:
+            type: object
+            properties:
+                deviceId:
+                    type: string
+                os:
+                    type: string
+                    minLength: 3
+                    maxLength: 255
+                osVersion:
+                    type: string
+                    minLength: 10
+                    maxLength: 255
+                telemetry:
+                    $ref: "#/components/schemas/TelemetryInfo"
+
+        TelemetryInfo:
+            type: object
+            required: [timestamp, location]
+            properties:
+                timestamp:
+                    type: string
+                location:
+                    $ref: "#/components/schemas/Location"
+
+        Device:
+            type: object
+            required: [deviceId, role, name]
+            properties:
+                deviceId:
+                    type: string
+                role:
+                    type: string
+                name:
+                    type: string
+                os:
+                    type: string
+                    minLength: 3
+                    maxLength: 255
+                osVersion:
+                    type: string
+                    minLength: 10
+                    maxLength: 255
+                model:
+                    type: string
+                    minLength: 5
+                    maxLength: 255
+
+        Location:
+            type: object
+            required: [lat, lon]
+            properties:
+                lat:
+                    type: number
+                lon:
+                    type: number
+
+        HistoricalTelemetryResponse:
+            type: object
+            required: [success, result]
+            properties:
+                success:
+                    type: boolean
+                error:
+                    type: string
+                result:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/HistoricalTelemetry"
+
+        HistoricalTelemetry:
+            type: object
+            properties:
+                data:
+                    type: string
+                timestamp:
+                    type: number
+                deviceId:
+                    type: string
+
+        GetDeviceAccessAPIResponse:
+            type: object
+            properties:
+                result:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DeviceAccess"
+                success:
+                    type: boolean
+
+        GetDevicesAPIResponse:
+            type: object
+            properties:
+                result:
+                    type: object
+                    properties:
+                        mine:
+                            type: array
+                            items:
+                                $ref: "#/components/schemas/Device"
+                success:
+                    type: boolean
+
+        APIGetInvitationsResponse:
+            type: object
+            properties:
+                result:
+                    type: object
+                    properties:
+                        sent:
+                            type: array
+                            items:
+                                $ref: "#/components/schemas/Invitation"
+                        received:
+                            type: array
+                            items:
+                                $ref: "#/components/schemas/Invitation"
+                success:
+                    type: boolean
+
+        User:
+            type: object
+            properties:
+                username:
+                    type: string
+
+        GeofenceRequest:
+            type: object
+            required: [address, username, lat, lon, name, radius]
+            properties:
+                address:
+                    type: string
+                username:
+                    type: string
+                lat:
+                    type: number
+                lon:
+                    type: number
+                name:
+                    type: string
+                radius:
+                    type: number

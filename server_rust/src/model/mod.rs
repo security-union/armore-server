@@ -33,11 +33,53 @@ pub type APIResult<T> = Result<Json<APIResponse<Option<T>>>, APIJsonResponse>;
 pub type PostgresPool = Pool<PostgresConnectionManager<NoTls>>;
 pub type PostgresConnection = PooledConnection<PostgresConnectionManager<NoTls>>;
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UpdateState {
+    pub new_state: UserState,
+}
+#[allow(non_snake_case)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Email {
+    pub username: String,
+    pub email: String,
+    pub templateId: String,
+    pub dynamicTemplateData: DynamicEmailTemplateData,
+}
+#[allow(non_snake_case)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicEmailTemplateData {
+    pub title: String,
+    pub body: String,
+    pub linkTitle: String,
+    pub picture: Option<String>,
+    pub link: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotificationData {
+    pub username: String,
+    pub title: String,
+    pub body: String,
+}
+
+#[allow(non_snake_case)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PushNotification {
+    pub deviceId: String,
+    pub data: JsonValue,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotificationRecipient {
+    pub email: String,
+    pub username: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct AcceptedNotificationData {
     pub creator: String,
     pub language: String,
-    pub recipient: String
+    pub recipient: String,
 }
 
 #[postgres(name = "link_invitation_state")]
@@ -216,6 +258,20 @@ pub struct UserDetails {
     pub language: Option<String>,
 }
 
+impl UserDetails {
+    pub fn from_complete_details(row: &postgres::Row) -> Self {
+        UserDetails {
+            username: row.get("username"),
+            firstName: row.get("first_name"),
+            lastName: row.get("last_name"),
+            email: row.get("email"),
+            phoneNumber: row.get("phone_number"),
+            picture: row.get("picture"),
+            language: row.get("language"),
+        }
+    }
+}
+
 #[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Telemetry {
@@ -299,8 +355,11 @@ pub struct DeviceUpdateResponse {
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Message {
-    pub message: String,
+pub struct Message<T>
+where
+    T: Serialize,
+{
+    pub message: T,
 }
 
 #[derive(Debug)]
@@ -310,6 +369,7 @@ pub struct APIJsonResponse {
     pub status: Status,
 }
 
+#[derive(Debug)]
 pub struct APIInternalError {
     pub msg: strings::TranslationIds,
     pub engineering_error: Option<String>,

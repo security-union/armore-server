@@ -10,8 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-use std::env;
+use std::{
+    env,
+    sync::{Arc, Mutex},
+};
 
+use amiquip::{Channel, Connection};
 use postgres::{error::Error, IsolationLevel, NoTls, Transaction};
 
 use r2d2::Pool;
@@ -22,9 +26,8 @@ use crate::model::APIInternalError;
 use crate::strings::TranslationIds;
 use rocket::State;
 
-pub mod devices_db;
-pub mod link_inv_db;
-pub mod telemetry_db;
+pub mod devices;
+pub mod telemetry;
 
 pub fn get_database_url() -> String {
     if let Ok(url) = env::var("PG_URL") {
@@ -66,12 +69,23 @@ pub fn get_connection(state: State<Storage>) -> Result<PostgresConnection, APIIn
     })
 }
 
-pub fn transaction<F>(conn: &mut PostgresConnection, action: F) -> Result<(), Error>
+pub fn transaction<F, T>(conn: &mut PostgresConnection, action: F) -> Result<T, Error>
 where
-    F: FnOnce(&mut Transaction) -> Result<(), Error>,
+    F: FnOnce(&mut Transaction) -> Result<T, Error>,
 {
     conn.build_transaction()
         .isolation_level(IsolationLevel::Serializable)
         .start()
-        .and_then(|mut transaction| action(&mut transaction).and_then(|_| transaction.commit()))
+        .and_then(|mut transaction| {
+            action(&mut transaction).and_then(|res| transaction.commit().map(|_| res))
+        })
 }
+
+pub fn unlock_channel(state: State<Arc<Mutex<Connection>>>) -> Result<Channel, APIInternalError> {
+    let mut guard = state.lock().expect("Rabbit Connection was poisoned");
+    guard.open_channel(None).map_err(|w| APIInternalError {
+        msg: TranslationIds::BackendIssue,
+        engineering_error: Some(w.to_string()),
+    })
+}
+

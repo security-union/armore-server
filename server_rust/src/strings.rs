@@ -16,6 +16,11 @@ pub enum TranslationIds {
     DeviceNotUpdated,
     PushNotificationInvitationAcceptedTitle,
     PushNotificationInvitationAcceptedBody,
+    UserAlreadyInEmergency,
+    UserAlreadyInNormal,
+    NormalModePushNotificationBody,
+    EmergencyModePushNotificationBody,
+    PushNotificationActionView
 }
 
 lazy_static! {
@@ -34,7 +39,12 @@ lazy_static! {
         (strings::TranslationIds::NannyNotificationOfflinePhoneOwnerBody,
          "Tu teléfono no está mandando su ubicación, por favor, abre Armore para arreglar esto"),
         (strings::TranslationIds::PushNotificationInvitationAcceptedTitle, "aceptó tu invitación"),
-        (strings::TranslationIds::PushNotificationInvitationAcceptedBody, "ahora es tu amig@")
+        (strings::TranslationIds::PushNotificationInvitationAcceptedBody, "ahora es tu amig@"),
+        (strings::TranslationIds::UserAlreadyInNormal, "No se pudo parar la emergencia"),
+        (strings::TranslationIds::UserAlreadyInEmergency, "No se pudo reportar la emergencia"),
+        (strings::TranslationIds::EmergencyModePushNotificationBody, "está en una EMERGENCIA! Por favor CONFIRME que están bien!!"),
+        (strings::TranslationIds::NormalModePushNotificationBody, "ya no está en una emergencia."),
+        (strings::TranslationIds::PushNotificationActionView, "Ir a la app")
     ].into_iter().collect();
 
     pub static ref ENGLISH:  HashMap<TranslationIds, &'static str> = vec![
@@ -52,7 +62,12 @@ lazy_static! {
         (strings::TranslationIds::NannyNotificationOfflinePhoneOwnerBody,
          "Your phone is not sending it's location, please open Armore to fix this"),
         (strings::TranslationIds::PushNotificationInvitationAcceptedTitle, "accepted your invitation"),
-        (strings::TranslationIds::PushNotificationInvitationAcceptedBody, "is now friends with you")
+        (strings::TranslationIds::PushNotificationInvitationAcceptedBody, "is now friends with you"),
+        (strings::TranslationIds::UserAlreadyInNormal, "Cannot end the emergency"),
+        (strings::TranslationIds::UserAlreadyInEmergency, "Cannot report the emergency"),
+        (strings::TranslationIds::EmergencyModePushNotificationBody, "is in an EMERGENCY! Please CONFIRM that they are okay!!"),
+        (strings::TranslationIds::NormalModePushNotificationBody, "is no longer in an emergency."),
+        (strings::TranslationIds::PushNotificationActionView, "Go to app")
     ].into_iter().collect();
 }
 

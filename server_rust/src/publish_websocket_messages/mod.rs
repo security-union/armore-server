@@ -15,17 +15,21 @@
  */
 use std::env;
 
-use amiquip::{Connection, ExchangeDeclareOptions, ExchangeType, Publish, Result as RabbitResult};
+use amiquip::{
+    Channel, Connection, ExchangeDeclareOptions, ExchangeType, Publish, Result as RabbitResult,
+};
 use chrono::Utc;
 use postgres::{NoTls, Statement};
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
 
-use crate::model::{TelemetryUpdate, TelemetryWebsocketUpdate, DATE_FORMAT, OS};
+use crate::model::{
+    NotificationData, PushNotification, TelemetryUpdate, TelemetryWebsocketUpdate, DATE_FORMAT, OS,
+};
 
 static WEBSOCKET_EXCHANGE: &str = "websocket.exchange";
-static NOTIFICATIONS_EXCHANGE: &str = "notifications.exchange";
-static NOTIFICATIONS_ROUTING_KEY: &str = "notifications";
+pub static NOTIFICATIONS_EXCHANGE: &str = "notifications.exchange";
+pub static NOTIFICATIONS_ROUTING_KEY: &str = "notifications";
 
 pub fn get_rabbitmq_uri() -> String {
     let rabbitmq_user = env::var("RABBITMQ_USER").expect("RABBITMQ_USER must be set");
@@ -71,60 +75,32 @@ pub fn send_ws_message(
     exchange.publish(Publish::new(message.as_bytes(), topic))
 }
 
-pub fn send_broadcast_notification(
-    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
-    connection: &mut Connection,
-    usernames: &Vec<String>,
-    title: &str,
-    body: &str,
-) -> RabbitResult<()> {
-    let channel = connection.open_channel(None)?;
-
+pub fn send_notification(channel: &Channel, value: String) -> RabbitResult<()> {
     let exchange = channel.exchange_declare(
         ExchangeType::Direct,
         NOTIFICATIONS_EXCHANGE,
-        ExchangeDeclareOptions {
-            durable: false,
-            auto_delete: false,
-            internal: false,
-            arguments: Default::default(),
-        },
+        ExchangeDeclareOptions::default(),
     )?;
-
     debug!("Publishing to exchange {}", exchange.name());
-    let message: String = format_user_notifications(usernames, client, title, body);
-    exchange.publish(Publish::new(message.as_bytes(), NOTIFICATIONS_ROUTING_KEY))
+    exchange.publish(Publish::new(value.as_bytes(), NOTIFICATIONS_ROUTING_KEY))
 }
 
-fn format_user_notifications(
-    usernames: &Vec<String>,
+pub fn build_user_push_notifications(
+    data: &NotificationData,
     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
-    title: &str,
-    body: &str,
-) -> String {
-    let message = usernames
-        .iter()
-        .flat_map(|username| {
-            get_subscriber_device_ids(client, username).map_or(vec![], |data| {
-                data.into_iter()
-                    .map(|(device_id, _os)| {
-                        format!(
-                            r#"{{
-                            "deviceId": "{}",
-                            "data": {{
-                                "title": "{}",
-                                "body": "{}"
-                            }}
-                        }}"#,
-                            &device_id, &title, &body
-                        )
-                    })
-                    .collect::<Vec<String>>()
+) -> Vec<PushNotification> {
+    get_subscriber_device_ids(client, &data.username).map_or(vec![], |devices| {
+        devices
+            .into_iter()
+            .map(|(device_id, _os)| PushNotification {
+                deviceId: device_id,
+                data: json!({
+                    "title": &data.title,
+                    "body": &data.body
+                }),
             })
-        })
-        .fold_first(|acc, curr| format!("{},{}", acc, curr))
-        .map_or("{}".to_string(), |data| data);
-    format!("[{}]", message)
+            .collect()
+    })
 }
 
 pub fn create_force_refresh_json(
@@ -238,87 +214,4 @@ pub fn get_subscriber_device_ids(
             })
             .collect()
     })
-}
-
-#[cfg(test)]
-mod test {
-    use super::format_user_notifications;
-    use crate::db::get_pool;
-    use crate::model::OS;
-    use crate::{
-        dbmate,
-        publish_websocket_messages::{
-            create_force_refresh_json, get_rabbitmq_uri, send_force_refresh,
-        },
-    };
-    use amiquip::Connection as RabbitConnection;
-    use dbmate::dbmate_rebuild;
-    #[test]
-    fn test_build_android_notification() {
-        let mut notification_string = create_force_refresh_json(
-            &"123".to_string(),
-            &OS::Android,
-            &"1234".to_string(),
-            &"dario".to_string(),
-        );
-        notification_string.retain(|c| !c.is_whitespace());
-        assert_eq!(
-            notification_string,
-            "{\"deviceId\":\"123\",\"data\":{\"priority\":\"high\",\"custom\":{\"data\":\
-        {\"command\":\"RefreshTelemetry\",\"correlationId\":\"1234\",\
-        \"username\":\"dario\",\"aps\":{\"content-available\":1}}}}}"
-        );
-    }
-
-    #[test]
-    fn test_build_ios_notification() {
-        let mut notification_string = create_force_refresh_json(
-            &"123".to_string(),
-            &OS::iOS,
-            &"1234".to_string(),
-            &"dario".to_string(),
-        );
-        notification_string.retain(|c| !c.is_whitespace());
-        assert_eq!(
-            notification_string,
-            "{\"deviceId\":\"123\",\"data\":{\"contentAvailable\":true,\
-        \"silent\":true,\"payload\":{\"command\":\"RefreshTelemetry\",\
-        \"correlationId\":\"1234\",\"username\":\"dario\"}}}"
-        );
-    }
-
-    #[test]
-    fn test_force_refresh() {
-        dbmate_rebuild();
-        let db_client = get_pool();
-        let mut client = db_client.get().unwrap();
-        let mut rabbitmq = RabbitConnection::insecure_open(&get_rabbitmq_uri())
-            .ok()
-            .unwrap();
-
-        let result = send_force_refresh(
-            &mut client,
-            &mut rabbitmq,
-            &"dario".to_string(),
-            &"dario".to_string(),
-            &"123".to_string(),
-        );
-        assert_eq!(result.is_ok(), true);
-    }
-
-    #[test]
-    fn format_user_notifications_test() {
-        dbmate_rebuild();
-        let db_client = get_pool();
-        let mut client = db_client.get().unwrap();
-
-        let result = format_user_notifications(
-            &vec!["dario".to_string(), "coche".to_string()],
-            &mut client,
-            "hola!",
-            "adios!",
-        );
-
-        assert_eq!(result, "[{\n                            \"deviceId\": \"dario_iphone\",\n                            \"data\": {\n                                \"title\": \"hola!\",\n                                \"body\": \"adios!\"\n                            }\n                        },{\n                            \"deviceId\": \"coche_iphone\",\n                            \"data\": {\n                                \"title\": \"hola!\",\n                                \"body\": \"adios!\"\n                            }\n                        }]");
-    }
 }

@@ -1,0 +1,267 @@
+openapi: 3.0.0
+
+servers:
+    - description: RescueLink Message Broker
+      url: https://api.armore.dev
+    - description: RescueLink Message Broker Staging URL
+      url: https://api.staging.armore.dev
+    - description: RescueLink Message Broker Dev URL
+      url: http://localhost:10001
+
+info:
+    version: "1.0.0"
+    title: RescueLink
+    description: Rest API to exchange messages betweeen devices.
+
+paths:
+    /v1/telemetry:
+        post:
+            tags:
+                - Commands
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/TelemetryRequest"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TelemetryResponse"
+                            example:
+                                result:
+                                    dario_id:
+                                        name: Dario Talarico
+                                        devices:
+                                            - location:
+                                                  lat: 23
+                                                  lon: 24
+                                              timestamp: 2342343234
+                                              deviceId: 234wera3234
+                                            - location:
+                                                  lat: 45
+                                                  lon: 65
+                                              timestamp: 54654
+                                              deviceId: another_device_id
+                                success: true
+
+    /v1/followers/keys:
+        get:
+            tags:
+                - Commands
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FollowerKeysResponse"
+                            example:
+                                result:
+                                    - username: dario
+                                      key: base64 key
+                                    - username: mariela
+                                      key: base64 key
+                                success: true
+    /v1/telemetry/{follower}:
+        get:
+            tags:
+                - Commands
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+                - name: follower
+                  in: path
+                  required: true
+                  description: the user to delete
+                  schema:
+                      type: string
+
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FollowerKeysResponse"
+                            example:
+                                result:
+                                    - username: dario
+                                      key: base64 key
+                                    - username: mariela
+                                      key: base64 key
+                                success: true
+    /v1/device/settings:
+        post:
+            tags:
+                - Commands
+            parameters:
+                - in: header
+                  name: asimovlives
+                  schema:
+                      type: string
+                  required: true
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DeviceSettingsRequest"
+            responses:
+                "200":
+                    description: Succesfully executed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DeviceSettingsResponse"
+                            example:
+                                result:
+                                    - updated: true
+                                success: true
+components:
+    schemas:
+        FollowerKeysResponse:
+            type: array
+            items:
+                type: object
+                properties:
+                    username:
+                        type: string
+                    key:
+                        type: string
+        DeviceSettingsRequest:
+            type: object
+            required: [locationPermissionState]
+            properties:
+                locationPermissionState:
+                    $ref: "#/components/schemas/LocationPermissionState"
+                isPowerSaveModeOn:
+                    type: boolean
+                isNotificationsEnabled:
+                    type: boolean
+                isBackgroundRefreshOn:
+                    type: boolean
+                isLocationServicesOn:
+                    type: boolean
+                osVersion:
+                    type: string
+                appVersion:
+                    type: string
+        DeviceSettingsResponse:
+            type: object
+            properties:
+                updated:
+                    type: boolean
+        TelemetryRequest:
+            type: object
+            required: [location, returnFriendLocations, appState]
+            properties:
+                appState:
+                    $ref: "#/components/schemas/AppState"
+                returnFriendLocations:
+                    type: boolean
+                telemetry:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TelemetryUpdate"
+
+        TelemetryUpdate:
+            type: object
+            required: [data, recipientId]
+            properties:
+                data:
+                    type: string
+                recipientUsername:
+                    type: string
+
+        TelemetryResponse:
+            type: object
+            required: [success, result]
+            properties:
+                success:
+                    type: boolean
+                error:
+                    type: string
+                result:
+                    type: object
+                    properties:
+                        followers:
+                            type: object
+                            additionalProperties:
+                                $ref: "#/components/schemas/Connection"
+                        following:
+                            type: object
+                            additionalProperties:
+                                $ref: "#/components/schemas/Connection"
+
+        Connection:
+            type: object
+            properties:
+                name:
+                    type: string
+                userDetails:
+                    $ref: "#/components/schemas/UserDetails"
+                telemetry:
+                    $ref: "#/components/schemas/TelemetryResponseData"
+                state:
+                    $ref: "#/components/schemas/UserState"
+                accessType:
+                    $ref: "#/components/schemas/AccessType"
+                publicKey:
+                    type: string
+
+        TelemetryResponseData:
+            type: object
+            required: [data]
+            properties:
+                data:
+                    type: string
+
+        UserDetails:
+            type: object
+            required: [firstName, lastName, email, username]
+            properties:
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+                email:
+                    type: string
+                username:
+                    type: string
+                picture:
+                    type: string
+
+        AccessType:
+            type: string
+            enum: [Permanent, EmergencyOnly]
+
+        UserState:
+            type: string
+            enum: [Normal, Emergency]
+
+        AppState:
+            type: string
+            enum: [Foreground, Background, UNKNOWN]
+
+        LocationPermissionState:
+            type: string
+            enum: [ALWAYS, ASK, USING, NEVER, UNKNOWN]

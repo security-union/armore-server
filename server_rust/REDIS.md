@@ -3,7 +3,7 @@
 How to connect to a Redis instance?
 
 ```
-redis-cli -h <google-ip>  -p 6379 ping
+redis-cli -h 35.184.190.126  -p 6379 ping
 ```
 
 ## SETS

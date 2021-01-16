@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: nginx-deployment
+    labels:
+        app: nginx
+spec:
+    selector:
+        matchLabels:
+            app: nginx
+    template:
+        metadata:
+            labels:
+                app: nginx
+        spec:
+            containers:
+                - name: nginx
+                  image: nginx-proxy:local
+                  ports:
+                      - containerPort: 10000
+                  command: ["yarn start"]
+                  env:
+                      - name: SERVICE_NAME
+                        value: "auth_server"
+                      - name: AUTH_SERVER
+                        value: "10000"

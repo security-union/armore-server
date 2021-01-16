@@ -8,37 +8,25 @@ edition = "2018"
 name = "lib"
 path = "src/lib.rs"
 
-[[bin]]
-name = "http_gateway"
-path = "src/http_gateway.rs"
-
-[[bin]]
-name = "nanny"
-path = "src/nanny.rs"
-
-[[bin]]
-name = "invitations"
-path = "src/invitations.rs"
-
 [dependencies]
 amiquip = "0.3"
-chrono = "0.4.11"
-env_logger = "0.7"
-futures = "0.3.3"
-jsonwebtoken = "7.1.0"
+chrono = "0.4.19"
+env_logger = "0.8"
+futures = "0.3.8"
+jsonwebtoken = "7.2.0"
 lazy_static = "1.4.0"
 log = "0.4"
-postgres= {version = "0.17", features = ["with-chrono-0_4"]}
-postgres-types= {version = "0.1.1", features = ["derive"]}
-redis = {version = "0.16.0", features = ["connection-manager"]}
+postgres= {version = "0.19", features = ["with-chrono-0_4"]}
+postgres-types= {version = "0.2", features = ["derive"]}
+redis = "0.19.0"
 regex = "1"
-reqwest = {version = "0.10.8", features = ["json"]}
-r2d2 = "0.8.8"
-r2d2_postgres = "0.16.0"
-rocket = { version = "0.4.4", default-features = false }
-rocket_cors = "0.5.1"
-rocket_contrib = "0.4.4"
+reqwest = {version = "0.10", features = ["json"]}
+r2d2 = "0.8.9"
+r2d2_postgres = "0.18.0"
+rocket = { version = "0.4.6", default-features = false }
+rocket_cors = "0.5.2"
+rocket_contrib = "0.4.6"
 serde="1.0"
 serde_json="1.0"
-tokio = "0.2.22"
+tokio = { version = "1", features = ["rt-multi-thread"] }
 uuid = { version = "0.8", features = ["serde", "v4"] }
