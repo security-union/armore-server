@@ -46,7 +46,7 @@ If you want to have more control over how the tests are performed, you can run:
 ### Node Server
 
 ```bash
-$ cd server
+$ cd nodejs
 $ make tests_up
 
     > $ npm run test-backend # ex.
