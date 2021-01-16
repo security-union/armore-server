@@ -1,0 +1,169 @@
+version: "3"
+services:
+    auth_server:
+        command: yarn start
+        build:
+            context: nodejs
+            cache_from:
+                - node:12.2.0-alpine
+        env_file: .env
+        ports:
+            - 10000:10000
+        depends_on:
+            - rabbit
+            - postgres
+            - redis
+        environment:
+            NODE_LOG_LEVEL: info
+            SERVICE_NAME: auth_server
+            AUTH_SERVER: 10000
+
+    http_gateway:
+        command: yarn start
+        build:
+            context: nodejs
+            cache_from:
+                - node:12.2.0-alpine
+        env_file: .env
+        ports:
+            - 8081:8081
+        depends_on:
+            - rabbit
+            - postgres
+            - redis
+        environment:
+            NODE_LOG_LEVEL: info
+            SERVICE_NAME: http_gateway
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+    notification_server:
+        command: yarn start
+        build:
+            context: nodejs
+            cache_from:
+                - node:12.2.0-alpine
+        env_file: .env
+        ports:
+            - 9999:9999
+        depends_on:
+            - rabbit
+            - postgres
+            - redis
+        environment:
+            SERVICE_NAME: notification_server
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            TWILIO_NUMBER: "+15005550006" # This number is safe to use https://www.twilio.com/docs/iam/test-credentials
+
+    ws_gateway:
+        command: yarn start
+        build:
+            context: nodejs
+            cache_from:
+                - node:12.2.0-alpine
+        env_file: .env
+        ports:
+            - 9080:9080
+        depends_on:
+            - rabbit
+            - redis
+        environment:
+            NODE_LOG_LEVEL: info
+            SERVICE_NAME: ws_gateway
+            REDIS_HOST: "redis"
+            REDIS_PORT: 6379
+
+    http_gateway_v1:
+        command: cargo watch -x 'run --bin http_gateway'
+        build:
+            context: rust
+            cache_from:
+                - securityunion/rust-dev:latest
+        env_file: .env
+        ports:
+            - 10001:10001
+        depends_on:
+            - rabbit
+            - postgres
+            - redis
+        environment:
+            RUST_LOG: "info"
+            REDIS_URL: "redis://redis"
+            ROCKET_ENV: "dev"
+            RUST_BACKTRACE: 1
+
+    invitations_v1:
+        command: cargo watch -x 'run --bin invitations'
+        build:
+            context: rust
+            cache_from:
+                - securityunion/rust-dev:latest
+        env_file: .env
+        ports:
+            - "10002:10001"
+        depends_on:
+            - rabbit
+            - postgres
+            - redis
+        environment:
+            RUST_LOG: "info"
+            REDIS_URL: "redis://redis"
+            ROCKET_ENV: "dev"
+            RUST_BACKTRACE: 1
+
+    nanny:
+        command: cargo watch -x 'run --bin nanny'
+        build:
+            context: rust
+            cache_from:
+                - securityunion/rust-dev:latest
+        env_file: .env
+        depends_on:
+            - rabbit
+            - postgres
+            - redis
+        environment:
+            RUST_LOG: "info"
+            REDIS_URL: "redis://redis"
+            ROCKET_ENV: "dev"
+            RUST_BACKTRACE: 1
+
+    # Middleware
+    dbmate:
+        build:
+            context: dbmate
+            cache_from:
+                - amacneil/dbmate
+        env_file: .env
+        environment:
+            DATABASE_URL: "postgres://${PG_USER}:${PG_PASS}@postgres:5432/${PG_DB}?sslmode=disable"
+        depends_on:
+            - postgres
+
+    postgres:
+        image: postgres:12
+        environment:
+            POSTGRES_PASSWORD: "docker"
+            PGPASSWORD: "docker"
+        ports:
+            - 5432
+
+    rabbit:
+        image: rabbitmq:3-management
+        environment:
+            RABBITMQ_DEFAULT_USER: "rabbitmq"
+            RABBITMQ_DEFAULT_PASS: "rabbitmq"
+            RABBITMQ_DEFAULT_VHOST: "staging"
+        ports:
+            - 15672
+
+    redis:
+        image: redis:alpine
+        ports:
+            - 6379
+
+    swagger-editor:
+        image: swaggerapi/swagger-editor
+        ports:
+            - 8082:8080

@@ -1,17 +1,12 @@
-version: "3.4"
+version: "3"
 services:
   rust-tests:
-    container_name: "rust-tests"
     command: sh -c /app/entrypoint_test.sh
     build:
       dockerfile: Dockerfile.test
       context: .
       cache_from:
         - rust:1.42.0
-    links:
-      - rabbit
-      - postgres
-      - redis
     depends_on:
       - rabbit
       - postgres
@@ -22,25 +17,21 @@ services:
       - RABBITMQ_PASS=rabbitmq
       - RABBITMQ_HOST=rabbit
       - RABBITMQ_VHOST=staging
-      - PG_USER="postgres"
-      - PG_PASS="docker"
-      - PG_HOST="postgres"
-      - PG_PORT=5432
-      - PG_DB="garage"
       - PG_URL=postgres://postgres:docker@postgres:5432/armore?sslmode=disable
       - REDIS_URL=redis://redis
-    networks:
-      - rust-tests
-    tty: true
     volumes:
       - type: bind
         source: ../dbmate/db
         target: /app/db
       - type: bind
-        source: ./
-        target: /app
-    ports:
-      - "10001:10001"
+        source: ./src
+        target: /app/src
+      - type: bind
+        source: ./Cargo.toml
+        target: /app/Cargo.toml
+      - type: bind
+        source: ./Cargo.lock
+        target: /app/Cargo.lock
 
   # Middleware
   postgres:
@@ -48,34 +39,20 @@ services:
     environment:
       POSTGRES_PASSWORD: "docker"
       PGPASSWORD: "docker"
-    networks:
-      - rust-tests
     ports:
-      - "5432:5432"
+      - 5432
   
   rabbit:
     image: "rabbitmq:3-management"
     environment:
-      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
       RABBITMQ_DEFAULT_VHOST: "staging"
-    networks:
-      - rust-tests
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - 15672
+      - 5672
 
   redis:
     image: redis:5.0.6-alpine
-    container_name: redis_http_gateway_v2_cache
-    expose:
-      - 6379
-    networks:
-      - rust-tests
     ports:
-      - "6379:6379"
-
-networks:
-  rust-tests:
-    driver: bridge
+      - 6379
