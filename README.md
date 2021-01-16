@@ -30,7 +30,7 @@ $ make build_and_run # This command builds and run the docker containers
 ### Node Server
 
 ```bash
-$ cd server
+$ cd nodejs
 $ make tests_run
 ```
 
