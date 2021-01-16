@@ -21,7 +21,7 @@ $ cp .env.save .env
 We provide you with a set of tools that can help you to automate the building and running process throughout makefiles and docker-compose files.
 
 ```bash
-$ make build_and_run # This command builds and run the docker containers
+$ docker-compose up --build -d
 # remember to execute `make down` when you are done
 ```
 
