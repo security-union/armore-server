@@ -55,8 +55,8 @@ $ make tests_up
 ### Rust Server
 
 ```bash
-$ cd server_rust
-$ make tests_local_up
+$ cd rust
+$ make tests_up
 
     > $ cargo test -- --test-threads=1 # ex.
 ```
