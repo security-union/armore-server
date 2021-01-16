@@ -6,12 +6,21 @@
 
 ### 🏠 [Homepage](https://armore.dev/)
 
+## Configure
+
+Make sure that you have **Docker** & **Docker Compose** installed on your system so you can easily follow the next steps!
+
+Before running the project, first copy the .env.save file:
+
+```bash
+$ cp .env.save .env
+```
+
 ## Run
 
 We provide you with a set of tools that can help you to automate the building and running process throughout makefiles and docker-compose files.
 
 ```bash
-$ cd <server_folder>
 $ make build_and_run # This command builds and run the docker containers
 # remember to execute `make down` when you are done
 ```

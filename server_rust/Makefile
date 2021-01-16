@@ -1,13 +1,3 @@
-build_and_run:
-	docker-compose build && docker-compose up
-
-prune_volumes_build_and_run:
-	docker volume prune
-	docker-compose build && docker-compose up
-
-down:
-	docker-compose down
-
 tests_local_up:
 	docker-compose -f docker-compose-test-local.yaml up -d && docker-compose -f docker-compose-test-local.yaml exec rust-tests /bin/bash
 
@@ -19,8 +9,5 @@ tests_local_down:
 
 tests_local_build:
 	docker-compose -f docker-compose-test-local.yaml build
-
-prune_images:
-	docker system prune
 
 
