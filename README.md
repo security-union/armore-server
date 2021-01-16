@@ -58,7 +58,7 @@ $ make tests_up
 $ cd rust
 $ make tests_up
 
-    > $ cargo test -- --test-threads=1 # ex.
+    > $ cargo test -- --test-threads=1 # Tests must run in serial. https://securityunion.atlassian.net/browse/ARM-157
 ```
 
 ## 👤 Contributors ✨
