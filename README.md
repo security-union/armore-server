@@ -1,3 +1,20 @@
+<p align="center" >
+  <img src="docs/marketing/icon.png" title="Armore" width="200" float=left>
+</p>
+
+# Armore: Find Family, Friends
+## Armore is the location sharing app available for iOS and other mobile platforms.
+
+<p align="center">
+<a href="https://apps.apple.com/us/app/id1515585896" rel="App Store Link">
+    <img src="docs/marketing/apple_app_store_badge.svg" width="200" title="App Store" float=left>
+</a>
+<a href="https://play.google.com/store/apps/details?id=com.blackfire.android" rel="Google Play Link">
+    <img src="docs/marketing/google-play-badge.svg" width="200" title="Google Play" float=left>
+</a>
+</p>
+
+
 <h1 align="center">Welcome to Armore server 👋</h1>
 <p>
 </p>
