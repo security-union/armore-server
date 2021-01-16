@@ -1,5 +1,5 @@
 <p align="center" >
-  <img src="docs/marketing/icon.png" title="Armore" width="200" float=left>
+  <img src="docs/marketing/icon.svg" title="Armore" width="200" float=left>
 </p>
 
 # Armore: Find Family, Friends
