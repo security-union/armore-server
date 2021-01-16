@@ -37,8 +37,8 @@ $ make tests_run
 ### Rust Server
 
 ```bash
-$ cd server_rust
-$ make tests_local_run
+$ cd rust
+$ make tests_run
 ```
 
 This is going to run all the tests inside a docker environment.
