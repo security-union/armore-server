@@ -3,7 +3,7 @@
 </p>
 
 # Armore: Find Family, Friends
-## Armore is the location sharing app available for iOS and other mobile platforms.
+## Armore is the e2e encrypted location sharing app available for iOS and other mobile platforms.
 
 <p align="center">
 <a href="https://apps.apple.com/us/app/id1515585896" rel="App Store Link">
