@@ -49,7 +49,7 @@ If you want to have more control over how the tests are performed, you can run:
 $ cd nodejs
 $ make tests_up
 
-    > $ npm run test-backend # ex.
+    > $ yarn test-backend # ex.
 ```
 
 ### Rust Server
