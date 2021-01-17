@@ -9,6 +9,8 @@
   </a>
   <img alt="rust-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/Rust?logo=Rust" />
   <img alt="node-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/NodeJS?logo=node.js" />
+  <img alt="pr" src="https://img.shields.io/github/issues-pr/security-union/armore-server" />
+  <img alt="issues" src="https://img.shields.io/github/issues/security-union/armore-server" />
 </p>
 
 <h1 align="center">Armore: Find Family, Friends</h1>
