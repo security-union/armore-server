@@ -2,8 +2,16 @@
   <img src="docs/marketing/icon.svg" title="Armore" width="200" float=left>
 </p>
 
-# Armore: Find Family, Friends
-## Armore is the e2e encrypted location sharing app available for iOS and other mobile platforms.
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0-blue.svg?cacheSeconds=2592000" />
+  <a href="./LICENSE" target="_blank">
+    <img alt="License: APACHE License" src="https://img.shields.io/github/license/security-union/armore-server" />
+  </a>
+</p>
+
+<h1 align="center">Armore: Find Family, Friends</h1>
+<h2 align="center">Armore is the e2e encrypted location sharing app available for iOS and other mobile platforms.</h2>
+
 
 <p align="center">
 <a href="https://apps.apple.com/us/app/id1515585896" rel="App Store Link">
@@ -14,10 +22,6 @@
 </a>
 </p>
 
-
-<h1 align="center">Welcome to Armore server 👋</h1>
-<p>
-</p>
 
 > Armore App Backend. A distributed system built with Rust and Node
 
