@@ -7,6 +7,8 @@
   <a href="./LICENSE" target="_blank">
     <img alt="License: APACHE License" src="https://img.shields.io/github/license/security-union/armore-server" />
   </a>
+  <img alt="rust-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/Rust?logo=Rust" />
+  <img alt="node-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/NodeJS?logo=node.js" />
 </p>
 
 <h1 align="center">Armore: Find Family, Friends</h1>
