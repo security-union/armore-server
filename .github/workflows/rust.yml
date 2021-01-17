@@ -1,0 +1,47 @@
+name: Rust
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: rust:1.42.0
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        env:
+          RABBITMQ_DEFAULT_USER: rabbitmq
+          RABBITMQ_DEFAULT_PASS: rabbitmq
+          RABBITMQ_DEFAULT_VHOST: test
+        ports:
+          - 15672:15672
+          - 5672:5672
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_PASSWORD: docker
+          PGPASSWORD: docker
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:5.0.6-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download dbmate
+        run: curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v1.10.0/dbmate-linux-amd64 && chmod +x /usr/local/bin/dbmate
+      - name: Set rust to nightly channel
+        run: rustup default nightly
+      - name: Test rust-server
+        env:
+          RABBITMQ_USER: rabbitmq
+          RABBITMQ_PASS: rabbitmq
+          RABBITMQ_HOST: rabbitmq
+          RABBITMQ_VHOST: test
+          PG_URL: postgres://postgres:docker@postgres:5432/armore?sslmode=disable
+          REDIS_URL: redis://redis
+        run: cd rust && cp -R ../dbmate/db ./ && cargo test -- --test-threads 1

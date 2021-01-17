@@ -1,6 +1,31 @@
-<h1 align="center">Welcome to Armore server 👋</h1>
-<p>
+<p align="center" >
+  <img src="docs/marketing/icon.svg" title="Armore" width="200" float=left>
 </p>
+
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0-blue.svg?cacheSeconds=2592000" />
+  <a href="./LICENSE" target="_blank">
+    <img alt="License: APACHE License" src="https://img.shields.io/github/license/security-union/armore-server" />
+  </a>
+  <img alt="rust-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/Rust?logo=Rust" />
+  <img alt="node-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/NodeJS?logo=node.js" />
+  <img alt="pr" src="https://img.shields.io/github/issues-pr/security-union/armore-server" />
+  <img alt="issues" src="https://img.shields.io/github/issues/security-union/armore-server" />
+</p>
+
+<h1 align="center">Armore: Find Family, Friends</h1>
+<h2 align="center">Armore is the e2e encrypted location sharing app available for iOS and other mobile platforms.</h2>
+
+
+<p align="center">
+<a href="https://apps.apple.com/us/app/id1515585896" rel="App Store Link">
+    <img src="docs/marketing/apple_app_store_badge.svg" width="200" title="App Store" float=left>
+</a>
+<a href="https://play.google.com/store/apps/details?id=com.blackfire.android" rel="Google Play Link">
+    <img src="docs/marketing/google-play-badge.svg" width="200" title="Google Play" float=left>
+</a>
+</p>
+
 
 > Armore App Backend. A distributed system built with Rust and Node
 

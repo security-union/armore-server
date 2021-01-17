@@ -1,0 +1,46 @@
+name: NodeJS
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: node:12.14.1-alpine
+    services:
+      rabbitmq:
+        image: rabbitmq:3-management
+        env:
+          RABBITMQ_DEFAULT_USER: rabbitmq
+          RABBITMQ_DEFAULT_PASS: rabbitmq
+          RABBITMQ_DEFAULT_VHOST: test
+        ports:
+          - 15672:15672
+          - 5672:5672
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_PASSWORD: docker
+          PGPASSWORD: docker
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download curl
+        run: apk add curl
+      - name: Download dbmate
+        run: curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v1.10.0/dbmate-linux-amd64 && chmod +x /usr/local/bin/dbmate
+      - name: Test node-server
+        env:
+          SERVICE_NAME: ws_gateway
+          RABBITMQ_USER: rabbitmq
+          RABBITMQ_PASS: rabbitmq
+          RABBIT_MQ_HOST: rabbitmq
+          RABBITMQ_VHOST: test
+          DATABASE_URL: postgres://postgres:docker@postgres:5432/armore-test?sslmode=disable
+          BETA_SIGNUP_SLACK_WEBHOOK_URL: yolo
+        run: cd nodejs && cp -R ../dbmate/db ./ && yarn test-backend
+
+  
