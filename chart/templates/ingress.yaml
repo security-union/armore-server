@@ -1,0 +1,57 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "armore.fullname" . -}}
+{{- $namespace := .Release.Namespace -}}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: "{{ $fullName }}-ingress"
+  labels:
+    {{- include "armore.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        {{- if eq $namespace "default"  }}
+        - {{ . | quote }}
+        {{- else }}
+        - {{ printf "%s.%s" $namespace . | quote }}
+        {{- end }}
+        {{- end }}
+      secretName: {{ printf "%s-%s" $fullName .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    {{- if eq $namespace "default"  }}
+    - host: {{ .host | quote }}
+    {{- else }}
+    - host: {{ printf "%s.%s" $namespace .host | quote }}
+    {{- end }}
+      http:
+        paths:
+          {{- $serviceName := .name -}}
+          {{- $pathType := .pathType -}}
+          {{- $servicePort := .servicePort -}}
+          {{- range .paths }}
+          - path: {{ . }}
+            pathType: {{ $pathType }}
+            backend:
+              service:
+                name: {{ printf "%s-%s" $fullName $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+          {{- end }}
+    {{- end }}
+  {{- end }}

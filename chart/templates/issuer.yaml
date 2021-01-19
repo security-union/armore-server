@@ -1,0 +1,25 @@
+{{- $fullName := include "armore.fullname" . }}
+{{- if .Values.ingress.tls }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ printf "%s-%s" $fullName .Values.issuer.name }}
+  labels:
+    {{- include "armore.labels" . | nindent 4 }}
+  {{- with .Values.issuer.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.issuer.acme }}
+  acme:
+    server: {{ .server }}
+    email: {{ .email }}
+    privateKeySecretRef:
+      name: {{ printf "%s-%s" $fullName .secretName }}
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+  {{- end }}
+{{- end }}
