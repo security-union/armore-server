@@ -40,10 +40,14 @@ spec:
             {{- $func := printf "armore.%s" . }}
             {{- include $func $ | nindent 12 }}
           {{- end }}
-      {{- with $globalContext.cloudSql }}
-        {{- toYaml .containers | nindent 8 }}
+          {{- if and .cloudSql $globalContext.Values.tags.cloudSql -}}
+          {{- printf "volumeMounts:" | nindent 10 }}
+            {{- include "armore.cloudSqlVolumeMount" $ | nindent 12 }}
+        {{- include "armore.cloudSqlSidecar" $ | nindent 8 }}
+          {{- end }}
+      {{- if and .cloudSql $globalContext.Values.tags.cloudSql }}
       volumes:
-        {{- toYaml .volumes | nindent 8 }}
+        {{- include "armore.cloudSqlVolume" $ | nindent 8 }}
       {{- end }}
       restartPolicy: {{ .restartPolicy }}
   ttlSecondsAfterFinished: {{ .ttlSecondsAfterFinished }}

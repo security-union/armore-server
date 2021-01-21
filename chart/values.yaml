@@ -3,23 +3,14 @@
 nameOverride: ""
 fullnameOverride: ""
 
-images:
-  dbmate: &dbmateTag ""
-  dbmateR: &dbmateRepo ""
-  nodeServer: &nodeServerTag ""
-  nodeServerR: &nodeServerRepo ""
-  rustServer: &rustServerTag ""
-  rustServerR: &rustServerRepo ""
-  redis: &redisTag ""
-  redisR: &redisRepo ""
-
 tags:
   certManager: false
   nginx: false
   cloudSql: true
 
 deployments:
-  - name: auth-server
+  authServer: 
+    name: auth-server
     enabled: true
     dependencies:
       - cloudSql
@@ -30,9 +21,9 @@ deployments:
     command: ["yarn"]
     args: ["start"]
     image:
-      repository: *nodeServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *nodeServerTag
+      tag: ""
     env:
       - name: SERVICE_NAME
         value: auth_server
@@ -45,7 +36,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: http-gateway
+  httpGateway:
+    name: http-gateway
     enabled: true
     dependencies:
       - cloudSql
@@ -56,13 +48,13 @@ deployments:
     command: ["yarn"]
     args: ["start"]
     image:
-      repository: *nodeServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *nodeServerTag
+      tag: ""
     env:
       - name: SERVICE_NAME
         value: http_gateway
-    podAnnotations:j
+    podAnnotations:
       app: http_gateway
     ports:
       - name: http
@@ -71,7 +63,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: http-gateway-v1
+  httpGatewayV1:
+    name: http-gateway-v1
     enabled: true
     dependencies:
       - cloudSql
@@ -80,9 +73,9 @@ deployments:
       - rabbitMQ
       - redis
     image:
-      repository: *rustServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *rustServerTag
+      tag: ""
     podAnnotations:
       app: http_gateway_v1
     command: ["./http_gateway"]
@@ -103,7 +96,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: invitations-v1
+  invitationsV1:
+    name: invitations-v1
     enabled: true
     dependencies:
       - cloudSql
@@ -111,9 +105,9 @@ deployments:
       - postgres
       - rabbitMQ
     image:
-      repository: *rustServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *rustServerTag
+      tag: ""
     podAnnotations:
       app: invitations_v1
     command: ["./invitations"]
@@ -132,7 +126,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: notifications-server
+  notificationsServer:
+    name: notifications-server
     enabled: true
     dependencies:
       - cloudSql
@@ -145,9 +140,9 @@ deployments:
     command: ["yarn"]
     args: ["start"]
     image:
-      repository: *nodeServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *nodeServerTag
+      tag: ""
     env:
       - name: SERVICE_NAME
         value: notification_server
@@ -160,7 +155,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: ws-gateway
+  wsGateway:
+    name: ws-gateway
     enabled: true
     dependencies:
       - cloudSql
@@ -170,9 +166,9 @@ deployments:
     command: ["yarn"]
     args: ["start"]
     image:
-      repository: *nodeServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *nodeServerTag
+      tag: ""
     env:
       - name: SERVICE_NAME
         value: ws_gateway
@@ -185,7 +181,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: nanny
+  nanny:
+    name: nanny
     enabled: false
     dependencies:
       - cloudSql
@@ -194,9 +191,9 @@ deployments:
       - redis
       - slack
     image:
-      repository: *rustServerRepo
+      repository: ""
       pullPolicy: Always
-      tag: *rustServerTag
+      tag: ""
     podAnnotations:
       app: nanny
     command: ["./nanny"]
@@ -219,7 +216,8 @@ deployments:
     resources: {}
     replicas: 1
     cloudSql: true
-  - name: rabbit-mq
+  rabbitmq:
+    name: rabbitmq
     enabled: true
     env: {}
     dependencies:
@@ -229,7 +227,7 @@ deployments:
       pullPolicy: Always
       tag: 3-management
     podAnnotations:
-      app: rabbit-mq
+      app: rabbitmq
     ports:
       - name: secure
         containerPort: 15672
@@ -239,13 +237,14 @@ deployments:
         protocol: TCP
     resources: {}
     replicas: 1
-  - name: redis
+  redis:
+    name: redis
     enabled: true
     env: {}
     image:
-      repository: *redisRepo
+      repository: ""
       pullPolicy: Always
-      tag: *redisTag
+      tag: ""
     podAnnotations:
       app: redis
     command: ["redis-server"]
@@ -298,7 +297,7 @@ services:
       - port: 9080
         targetPort: 9080
         protocol: TCP
-  - name: rabbit-mq
+  - name: rabbitmq
     ports:
       - port: 15672
         targetPort: 15672
@@ -318,10 +317,10 @@ ingress:
   enabled: true
   annotations:
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/proxy-body-size: 8m
-    nginx.ingress.kubernetes.io/ssl-redirect: true
-    nginx.ingress.kubernetes.io/limit-connections: 20
-    nginx.ingress.kubernetes.io/limit-rpm: 120
+    # nginx.ingress.kubernetes.io/proxy-body-size: 8m
+    # nginx.ingress.kubernetes.io/ssl-redirect: true
+    # nginx.ingress.kubernetes.io/limit-connections: 20
+    # nginx.ingress.kubernetes.io/limit-rpm: 120
   hosts:
     - name: auth-server
       host: auth.armore.dev
@@ -353,19 +352,19 @@ ingress:
       paths: [/]
       pathType: Prefix
       servicePort: 9080
-    - name: rabbit-mq
+    - name: rabbitmq
       host: rabbitmq.armore.dev
       paths: [/]
       pathType: Prefix
       servicePort: 15672
-  tls: []
-    # - secretName: barnacles
-    #   hosts:
-    #     - auth.armore.dev
-    #     - api.armore.dev
-    #     - notifications.armore.dev
-    #     - ws.armore.dev
-    #     - rabbitmq.armore.dev
+  tls:
+    - secretName: barnacles
+      hosts:
+        - auth.armore.dev
+        - api.armore.dev
+        - notifications.armore.dev
+        - ws.armore.dev
+        - rabbitmq.armore.dev
 
 ingress-nginx:
   scope:
@@ -378,45 +377,52 @@ issuer:
     server: https://acme-v02.api.letsencrypt.org/directory
     secretName: barnacles
 
-jobs:
+# jobs:
+# TODO: this is not ready for primetime
 # dbmate runs before installs and upgrades
 # it connects to the database and runs all migrations
-  - name: dbmate-on-install
-    enabled: true
-    backoffLimit: 2
-    restartPolicy: Never
-    dependencies:
-      - postgres
-    env: {}
-    image:
-      repository: ""
-      pullPolicy: Always
-      tag: *dbmateTag
-    annotations:
-      "helm.sh/hook": pre-install
-      "helm.sh/hook-delete-policy": hook-succeeded
-    podAnnotations:
-      app: dbmate
-    command: ["/app/startup.sh"]
-    args: []
-  - name: dbmate-on-upgrade
-    enabled: true
-    backoffLimit: 2
-    restartPolicy: Never
-    dependencies:
-      - postgres
-    env: {}
-    image:
-      repository: ""
-      pullPolicy: Always
-      tag: *dbmateTag
-    annotations:
-      "helm.sh/hook": pre-upgrade
-      "helm.sh/hook-delete-policy": hook-succeeded
-    podAnnotations:
-      app: dbmate
-    command: ["/app/startup.sh"]
-    args: []
+  # dbmateInstall:
+  #   name: dbmate-on-install
+  #   enabled: true
+  #   backoffLimit: 2
+  #   restartPolicy: Never
+  #   cloudSql: true
+  #   dependencies:
+  #     - postgreSuper
+  #     - cloudSql
+  #   env: {}
+  #   image:
+  #     repository: ""
+  #     pullPolicy: Always
+  #     tag: ""
+  #   annotations:
+  #     "helm.sh/hook": post-install
+  #     "helm.sh/hook-delete-policy": hook-succeeded
+  #   podAnnotations:
+  #     app: dbmate
+  #   command: ["/app/startup.sh"]
+  #   args: []
+  # dbmateUpgrade:
+  #   name: dbmate-on-upgrade
+  #   enabled: true
+  #   backoffLimit: 2
+  #   cloudSql: true
+  #   restartPolicy: Never
+  #   dependencies:
+  #     - postgreSuper
+  #     - cloudSql
+  #   env: {}
+  #   image:
+  #     repository: ""
+  #     pullPolicy: Always
+  #     tag: ""
+  #   annotations:
+  #     "helm.sh/hook": post-upgrade
+  #     "helm.sh/hook-delete-policy": hook-succeeded
+  #   podAnnotations:
+  #     app: dbmate
+  #   command: ["/app/startup.sh"]
+  #   args: []
 
 cloud:
   projectId: ""

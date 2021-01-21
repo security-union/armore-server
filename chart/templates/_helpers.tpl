@@ -75,22 +75,24 @@ Cloud storage environment variables
 Rabbit MQ environment variables
 */}}
 {{- define "armore.rabbitMQ" -}}
+- name: RABBITMQ_HOST
+  value: "{{ include "armore.fullname" . }}-rabbitmq"
 - name: RABBIT_MQ_HOST
-  value: "{{ include "armore.fullname" . }}-rabbit-mq"
+  value: "{{ include "armore.fullname" . }}-rabbitmq"
 - name: RABBITMQ_VHOST
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: rabbitmqVirtualHost
 - name: RABBITMQ_USER
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: user
 - name: RABBITMQ_PASS
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: pass
 {{- end }}
 
@@ -101,27 +103,27 @@ Internal Rabbit MQ environment variables
 - name: RABBITMQ_DEFAULT_VHOST
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: rabbitmqVirtualHost
 - name: RABBITMQ_ERLANG_COOKIE
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: erlangCookie
 - name: RABBITMQ_DEFAULT_USER
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: user
 - name: RABBITMQ_DEFAULT_PASS
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: pass
 - name: RABBITMQ_DEFAULT_PASS_HASH
   valueFrom:
     secretKeyRef:
-      name: "{{ include "armore.fullname" . }}-rabbit-mq"
+      name: "{{ include "armore.fullname" . }}-rabbitmq"
       key: passHash
 {{- end }}
 
@@ -133,12 +135,15 @@ Postgres environment variables
   valueFrom:
     secretKeyRef:
       name: "{{ include "armore.fullname" . }}-postgres"
-      key: url
+      key: appUrl
+{{- end }}
+
+{{- define "armore.postgreSuper" -}}
 - name: DATABASE_URL
   valueFrom:
     secretKeyRef:
       name: "{{ include "armore.fullname" . }}-postgres"
-      key: url
+      key: dbmateUrl
 {{- end }}
 
 {{/*
@@ -264,7 +269,7 @@ Google Cloud Sql Proxy Sidecar Container
   image: gcr.io/cloudsql-docker/gce-proxy:1.14
   command: [
       "/cloud_sql_proxy",
-      "-instances=${CS_PROJECT}:us-central1:${DB_NAME}=tcp:5432",
+      "-instances=iot-garage-242501:us-central1:garage-db=tcp:5432",
         # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
         # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
         # "-ip_address_types=PRIVATE",
