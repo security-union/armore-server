@@ -1,4 +1,4 @@
-use lib::invitations::handlers::rocket;
+use lib::server::invitations::rocket;
 
 fn main() {
     env_logger::init();

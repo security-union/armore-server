@@ -4,10 +4,13 @@ use rocket::http::Status;
 use rocket::local::Client;
 use serde_json::{json, Value};
 
-use lib::auth::ASIMOV_LIVES;
+use lib::constants::ASIMOV_LIVES;
 use lib::model::{
-    APIResponse, AccessType, BatteryState, ChargingState, Connection, Telemetry, TelemetryResponse,
-    UserDetails, UserState,
+    devices::{BatteryState, ChargingState},
+    emergency::{AccessType, UserState},
+    responses::{APIResponse, TelemetryResponse},
+    telemetry::{Connection, Telemetry},
+    UserDetails,
 };
 
 mod common;
@@ -17,7 +20,7 @@ use common::{
     dbmate::dbmate_rebuild,
     redis::flush_redis,
 };
-use lib::http_gateway::handlers::rocket;
+use lib::server::http_gateway::rocket;
 
 #[test]
 fn test_get_follower_keys() {

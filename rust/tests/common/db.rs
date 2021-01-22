@@ -1,5 +1,5 @@
 use chrono::DateTime;
-use lib::{db::get_pool, model::InvitationState};
+use lib::{db::get_pool, model::invitations::InvitationState};
 use std::time::SystemTime;
 
 pub fn insert_mock_public_key(username: &str, public_key: &str) {

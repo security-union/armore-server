@@ -1,7 +1,3 @@
-#[macro_use]
-extern crate log;
-extern crate redis;
-
 use chrono::{Duration, Local};
 use std::env;
 use std::thread;
@@ -9,12 +5,12 @@ use tokio::runtime::Runtime;
 
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
 use lib::db::get_pool;
-use lib::db::telemetry::force_refresh_telemetry_internal;
-use lib::model::AuthInfo;
-use lib::slack::send_nanny_slack_message;
+use lib::controllers::telemetry::force_refresh_telemetry_internal;
+use lib::messaging::slack::send_nanny_slack_message;
+use lib::model::auth::AuthInfo;
 
-use crate::redis::Commands;
-
+use log::{debug, info, error};
+use redis::Commands;
 /**
 Nanny is a program that has the following jobs:
 
