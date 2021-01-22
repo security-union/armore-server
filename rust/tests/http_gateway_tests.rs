@@ -20,7 +20,7 @@ use common::{
     dbmate::dbmate_rebuild,
     redis::flush_redis,
 };
-use lib::http_gateway::handlers::rocket;
+use lib::server::http_gateway::rocket;
 
 #[test]
 fn test_get_follower_keys() {

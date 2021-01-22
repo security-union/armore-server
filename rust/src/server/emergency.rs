@@ -1,10 +1,11 @@
-use super::{send_emergency_notifications, update_user_state};
+use crate::controllers::emergency::{send_emergency_notifications, update_user_state};
 use amiquip::Connection as RabbitConnection;
 
+use super::middleware::{catchers::catchers, cors::options};
+
 use crate::{
-    db::{get_connection, get_pool, unlock_channel},
-    messaging::get_rabbitmq_uri,
-    middleware::{catchers::catchers, cors::options},
+    db::{get_connection, get_pool},
+    messaging::{get_rabbitmq_uri, unlock_channel},
     model::{
         auth::AuthInfo,
         emergency::{UpdateState, UserState},

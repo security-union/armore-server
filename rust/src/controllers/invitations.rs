@@ -1,5 +1,3 @@
-pub mod handlers;
-
 use crate::db::transaction;
 use crate::lang::{get_dictionary, TranslationIds};
 use crate::messaging::{build_user_push_notifications, send_notification};

@@ -1,5 +1,5 @@
 use log::info;
-use lib::http_gateway::handlers::rocket;
+use lib::server::http_gateway::rocket;
 
 fn main() {
     env_logger::init();

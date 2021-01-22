@@ -16,7 +16,7 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::{request, Request, State};
 
 use crate::constants::ASIMOV_LIVES;
-use crate::db::telemetry::{get_public_key, get_user_details};
+use crate::controllers::telemetry::{get_public_key, get_user_details};
 use crate::model::{
     auth::{AuthInfo, Claims},
     responses::{APIJsonResponse, Errors::APIError},

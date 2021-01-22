@@ -6,7 +6,7 @@ use rocket::http::{Header, Status};
 use rocket::local::Client;
 use rocket_contrib::json;
 
-use lib::invitations::handlers::rocket;
+use lib::server::invitations::rocket;
 use std::time::SystemTime;
 
 mod common;

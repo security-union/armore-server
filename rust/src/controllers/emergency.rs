@@ -1,8 +1,6 @@
-pub mod handlers;
-
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
-    db::telemetry::get_user_details,
+    controllers::telemetry::get_user_details,
     lang::{get_dictionary, TranslationIds},
     messaging::{build_user_push_notifications, send_notification},
     model::{

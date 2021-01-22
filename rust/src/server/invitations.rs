@@ -1,11 +1,11 @@
-use super::{
+use crate::controllers::invitations::{
     accept_invitation, assert_not_friends, assert_valid_invitation, create_invitation,
     get_invitation_creator, notify_accepted, reject_invitation, remove_friends,
 };
-use crate::middleware::{catchers::catchers, cors::options};
+use super::middleware::{catchers::catchers, cors::options};
 use crate::{
-    db::{get_connection, get_pool, unlock_channel},
-    messaging::get_rabbitmq_uri,
+    db::{get_connection, get_pool},
+    messaging::{get_rabbitmq_uri, unlock_channel},
     model::{
         auth::AuthInfo,
         invitations::{LinkActionData, LinkCreationData},

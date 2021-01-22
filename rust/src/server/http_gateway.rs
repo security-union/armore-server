@@ -4,10 +4,10 @@ use amiquip::Connection;
 use rocket::{Rocket, State};
 use rocket_contrib::json::Json;
 
-use crate::middleware::{catchers::catchers, cors::self};
-use crate::db::devices::{get_device_by_id, update_device_settings};
+use super::middleware::{catchers::catchers, cors::self};
+use crate::controllers::devices::{get_device_by_id, update_device_settings};
 use crate::db::get_pool;
-use crate::db::telemetry::{
+use crate::controllers::telemetry::{
     close_command, force_refresh_telemetry_internal, get_connections, get_follower_keys,
     get_user_state, store_telemetry, username_has_follower,
 };

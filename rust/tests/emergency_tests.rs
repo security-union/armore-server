@@ -1,8 +1,8 @@
 use amiquip::{Connection, QueueDeleteOptions};
 use lib::constants::ASIMOV_LIVES;
-use lib::emergency::handlers::rocket;
+use lib::server::emergency::rocket;
 use lib::{
-    emergency::{get_emergency_connections, update_user_state},
+    controllers::emergency::{get_emergency_connections, update_user_state},
     model::emergency::UserState,
     messaging::get_rabbitmq_uri,
 };

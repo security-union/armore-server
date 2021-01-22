@@ -10,24 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-use std::{
-    env,
-    sync::{Arc, Mutex},
-};
-
-use amiquip::{Channel, Connection};
+use std::env;
 use postgres::{error::Error, IsolationLevel, NoTls, Transaction};
-
 use r2d2::Pool;
 use r2d2_postgres::PostgresConnectionManager;
-
 use super::model::{PostgresConnection, PostgresPool, Storage};
-use crate::model::responses::Errors::APIInternalError;
 use crate::lang::TranslationIds;
+use crate::model::responses::Errors::APIInternalError;
 use rocket::State;
-
-pub mod devices;
-pub mod telemetry;
 
 pub fn get_database_url() -> String {
     if let Ok(url) = env::var("PG_URL") {
@@ -80,12 +70,3 @@ where
             action(&mut transaction).and_then(|res| transaction.commit().map(|_| res))
         })
 }
-
-pub fn unlock_channel(state: State<Arc<Mutex<Connection>>>) -> Result<Channel, APIInternalError> {
-    let mut guard = state.lock().expect("Rabbit Connection was poisoned");
-    guard.open_channel(None).map_err(|w| APIInternalError {
-        msg: TranslationIds::BackendIssue,
-        engineering_error: Some(w.to_string()),
-    })
-}
-

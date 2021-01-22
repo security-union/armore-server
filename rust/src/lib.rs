@@ -23,11 +23,8 @@ extern crate rocket_contrib;
 extern crate lazy_static;
 extern crate redis;
 
-pub mod invitations;
-pub mod emergency;
-pub mod http_gateway;
-
-pub mod middleware;
+pub mod controllers;
+pub mod server;
 pub mod constants;
 pub mod db;
 
