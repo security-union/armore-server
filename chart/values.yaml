@@ -33,7 +33,13 @@ deployments:
       - name: http
         containerPort: 10000
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
     replicas: 1
     cloudSql: true
   httpGateway:
@@ -60,7 +66,13 @@ deployments:
       - name: http
         containerPort: 8081
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
     replicas: 1
     cloudSql: true
   httpGatewayV1:
@@ -93,7 +105,13 @@ deployments:
       - name: http
         containerPort: 8000
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
     replicas: 1
     cloudSql: true
   invitationsV1:
@@ -123,7 +141,13 @@ deployments:
       - name: http
         containerPort: 8001
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
     replicas: 1
     cloudSql: true
   notificationsServer:
@@ -152,7 +176,13 @@ deployments:
       - name: http
         containerPort: 9999
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
     replicas: 1
     cloudSql: true
   wsGateway:
@@ -178,7 +208,13 @@ deployments:
       - name: http
         containerPort: 9080
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
     replicas: 1
     cloudSql: true
   nanny:
@@ -213,7 +249,13 @@ deployments:
       - name: http
         containerPort: 8000
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
     replicas: 1
     cloudSql: true
   rabbitmq:
@@ -235,7 +277,13 @@ deployments:
       - name: insecure
         containerPort: 5672
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 200m
+        memory: 600M
+      requests:
+        cpu: 25m
+        memory: 300M
     replicas: 1
   redis:
     name: redis
@@ -253,7 +301,13 @@ deployments:
       - name: http
         containerPort: 6379
         protocol: TCP
-    resources: {}
+    resources:
+      limits:
+        cpu: 50m
+        memory: 60M
+      requests:
+        cpu: 20m
+        memory: 30M
     replicas: 1
     cloudSql: true
     securityContext:
