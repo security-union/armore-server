@@ -20,6 +20,7 @@ lazy_static! {
         (TranslationIds::PushNotificationInvitationAcceptedBody, "ahora es tu amig@"),
         (TranslationIds::UserAlreadyInNormal, "No se pudo parar la emergencia"),
         (TranslationIds::UserAlreadyInEmergency, "No se pudo reportar la emergencia"),
+        (TranslationIds::UserNotInEmergency, "El usuario no se encuentra en una emergencia"),
         (TranslationIds::EmergencyModePushNotificationBody, "está en una EMERGENCIA! Por favor CONFIRME que están bien!!"),
         (TranslationIds::NormalModePushNotificationBody, "ya no está en una emergencia."),
         (TranslationIds::PushNotificationActionView, "Ir a la app")

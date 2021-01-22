@@ -61,3 +61,10 @@ pub enum CommandState {
     Completed,
     Error,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Location {
+    pub data: String,
+    pub timestamp: String,
+    pub device_id: String,
+}

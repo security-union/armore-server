@@ -9,6 +9,7 @@ use crate::{
             DynamicEmailTemplateData, Email, NotificationData, NotificationRecipient,
             PushNotification,
         },
+        telemetry::Location,
         responses::Errors::APIInternalError,
         PostgresConnection, UserDetails,
     },
@@ -25,10 +26,7 @@ pub fn update_user_state(
         "UPDATE users_state set self_perception = $1 where username = $2 AND self_perception != $1",
         &[&state, username],
     )
-    .map_err(|w| APIInternalError {
-        msg: TranslationIds::BackendIssue,
-        engineering_error: Some(w.to_string()),
-    })
+    .map_err(APIInternalError::from_postgres_err)
     .and_then(|updated_rows| {
         if updated_rows < 1 {
             Err(APIInternalError::user_state_error(state))
@@ -174,4 +172,52 @@ pub fn get_emergency_connections(
             })
             .collect()
     })
+}
+
+pub fn get_historical_telemetry(
+    conn: &mut PostgresConnection,
+    req_user: &String,
+    emergency_user: &String,
+    start_time: &String,
+    end_time: &String,
+) -> Result<Vec<Location>, APIInternalError> {
+    conn.query(
+        "SELECT encrypted_location, device_id, creation_timestamp AS timestamp
+         FROM device_telemetry WHERE username = $1 AND recipient_username = $4
+         AND creation_timestamp > $2 AND creation_timestamp < $3
+         ORDER BY timestamp ASC",
+        &[emergency_user, start_time, end_time, req_user],
+    )
+    .map_err(APIInternalError::from_postgres_err)
+    .map(|results| {
+        results
+            .into_iter()
+            .map(|row| Location {
+                data: row.get("encrypted_location"),
+                device_id: row.get("device_id"),
+                timestamp: row.get("timestamp")
+            })
+            .collect()
+    })
+}
+
+/****************/
+/** ASSERTIONS **/
+/****************/
+pub fn assert_emergency_user(
+    conn: &mut PostgresConnection,
+    username: &String,
+) -> Result<(), APIInternalError> {
+    conn.query(
+        "SELECT * FROM users_state WHERE username = $1 AND self_perception = $2",
+        &[username, &UserState::Emergency],
+    )
+    .map_err(|w| APIInternalError::from_postgres_err(w))
+    .and_then(|rows| {
+        rows.into_iter().next().ok_or(APIInternalError {
+            msg: TranslationIds::UserNotInEmergency,
+            engineering_error: None,
+        })
+    })
+    .and_then(|_| Ok(()))
 }

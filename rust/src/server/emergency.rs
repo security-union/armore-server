@@ -1,15 +1,22 @@
-use crate::controllers::emergency::{send_emergency_notifications, update_user_state};
 use amiquip::Connection as RabbitConnection;
 
 use super::middleware::{catchers::catchers, cors::options};
 
 use crate::{
+    controllers::{
+        emergency::{
+            assert_emergency_user, get_historical_telemetry, send_emergency_notifications,
+            update_user_state,
+        },
+        invitations::assert_not_friends,
+    },
     db::{get_connection, get_pool},
     messaging::{get_rabbitmq_uri, unlock_channel},
     model::{
         auth::AuthInfo,
         emergency::{UpdateState, UserState},
         responses::{APIJsonResponse, APIResponse},
+        telemetry::Location,
         APIResult, Message, Storage,
     },
 };
@@ -47,6 +54,39 @@ fn update_state(
                     result: Some(Message { message: new_state }),
                 }))
             })
+        })
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))
+}
+
+#[get("/telemetry/<username>?<start_time>&<end_time>")]
+fn get_user_historical_location(
+    username: String,
+    start_time: String,
+    end_time: String,
+    auth_info: AuthInfo,
+    storage: State<Storage>,
+) -> APIResult<Vec<Location>> {
+    let emergency_user = username;
+    let req_user = &auth_info.username;
+    get_connection(storage)
+        .and_then(|mut conn| {
+            assert_emergency_user(&mut conn, &emergency_user)
+                .and_then(|_| assert_not_friends(&mut conn, &req_user, &emergency_user))
+                .and_then(|_| {
+                    get_historical_telemetry(
+                        &mut conn,
+                        &req_user,
+                        &emergency_user,
+                        &start_time,
+                        &end_time,
+                    )
+                })
+                .and_then(|historic| {
+                    Ok(Json(APIResponse {
+                        success: true,
+                        result: Some(historic),
+                    }))
+                })
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))
 }

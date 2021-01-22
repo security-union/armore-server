@@ -22,6 +22,7 @@ pub enum TranslationIds {
     PushNotificationInvitationAcceptedBody,
     UserAlreadyInEmergency,
     UserAlreadyInNormal,
+    UserNotInEmergency,
     NormalModePushNotificationBody,
     EmergencyModePushNotificationBody,
     PushNotificationActionView
