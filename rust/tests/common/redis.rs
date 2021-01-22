@@ -1,4 +1,4 @@
-use lib::db::telemetry::redis_hash_map_name;
+use lib::controllers::telemetry::redis_hash_map_name;
 use std::env;
 use redis::Commands;
 
