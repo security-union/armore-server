@@ -10,12 +10,26 @@ terraform {
 provider "google" {
   project = "iot-garage-242501"
   region  = "us-central1"
-  zone    = "us-central1-c"
 }
 
 resource "google_service_account" "default" {
   account_id   = "terraform"
   display_name = "Terraform Service Account"
+}
+
+data "google_iam_policy" "read_gcr" {
+  binding {
+    role = "roles/storage.objectViewer"
+
+    members = [
+      "group:support@armore.dev",
+    ]
+  }
+}
+
+resource "google_service_account_iam_policy" "admin-account-iam" {
+  service_account_id = google_service_account.default.name
+  policy_data        = data.google_iam_policy.read_gcr.policy_data
 }
 
 resource "google_container_cluster" "primary" {
