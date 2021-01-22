@@ -29,8 +29,9 @@ use crate::model::{
     telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
     devices::OS,
 };
-
 use crate::constants::DATE_FORMAT;
+
+pub mod slack;
 
 static WEBSOCKET_EXCHANGE: &str = "websocket.exchange";
 pub static NOTIFICATIONS_EXCHANGE: &str = "notifications.exchange";

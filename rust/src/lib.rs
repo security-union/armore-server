@@ -33,5 +33,4 @@ pub mod db;
 
 pub mod model;
 pub mod messaging;
-pub mod slack;
 pub mod lang;
