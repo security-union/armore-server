@@ -4,10 +4,13 @@ use rocket::http::Status;
 use rocket::local::Client;
 use serde_json::{json, Value};
 
-use lib::auth::ASIMOV_LIVES;
+use lib::constants::ASIMOV_LIVES;
 use lib::model::{
-    APIResponse, AccessType, BatteryState, ChargingState, Connection, Telemetry, TelemetryResponse,
-    UserDetails, UserState,
+    devices::{BatteryState, ChargingState},
+    emergency::{AccessType, UserState},
+    responses::{APIResponse, TelemetryResponse},
+    telemetry::{Connection, Telemetry},
+    UserDetails,
 };
 
 mod common;

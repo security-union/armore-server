@@ -1,12 +1,12 @@
 use amiquip::{Connection, QueueDeleteOptions};
-use lib::auth::ASIMOV_LIVES;
+use lib::constants::ASIMOV_LIVES;
 use lib::emergency::handlers::rocket;
 use lib::{
     emergency::{get_emergency_connections, update_user_state},
-    model::UserState,
-    publish_websocket_messages::get_rabbitmq_uri,
+    model::emergency::UserState,
+    messaging::get_rabbitmq_uri,
 };
-use lib::{db::get_pool, publish_websocket_messages::send_notification};
+use lib::{db::get_pool, messaging::send_notification};
 use rocket::http::Header;
 use rocket::http::Status;
 use rocket::local::Client;

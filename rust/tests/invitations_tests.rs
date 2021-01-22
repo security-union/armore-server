@@ -1,6 +1,6 @@
 use chrono::{Duration, Local};
-use lib::auth::ASIMOV_LIVES;
-use lib::{db::get_pool, model::InvitationState};
+use lib::constants::ASIMOV_LIVES;
+use lib::{db::get_pool, model::invitations::InvitationState};
 use regex::Regex;
 use rocket::http::{Header, Status};
 use rocket::local::Client;

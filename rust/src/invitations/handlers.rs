@@ -2,16 +2,17 @@ use super::{
     accept_invitation, assert_not_friends, assert_valid_invitation, create_invitation,
     get_invitation_creator, notify_accepted, reject_invitation, remove_friends,
 };
-use crate::catchers::catchers;
-use crate::model::APIJsonResponse;
+use crate::middleware::{catchers::catchers, cors::options};
 use crate::{
-    cors::options,
     db::{get_connection, get_pool, unlock_channel},
+    messaging::get_rabbitmq_uri,
     model::{
-        APIResponse, APIResult, AuthInfo, InvitationReq, InvitationResp, LinkActionData,
-        LinkCreationData, Message, Storage,
+        auth::AuthInfo,
+        invitations::{LinkActionData, LinkCreationData},
+        requests::InvitationRequest,
+        responses::{APIJsonResponse, APIResponse, InvitationResponse},
+        APIResult, Message, Storage,
     },
-    publish_websocket_messages::get_rabbitmq_uri,
 };
 use amiquip::Connection as RabbitConnection;
 use rocket::{Rocket, State};
@@ -24,10 +25,10 @@ use uuid::Uuid;
 /// Returns the generated link for this invitation
 #[post("/", format = "application/json", data = "<invitation_req>")]
 fn create(
-    invitation_req: Json<InvitationReq>,
+    invitation_req: Json<InvitationRequest>,
     auth_info: AuthInfo,
     state: State<Storage>,
-) -> APIResult<InvitationResp> {
+) -> APIResult<InvitationResponse> {
     // Get the basic data to create a new invitation_link instance
     let data = LinkCreationData::new(
         Uuid::new_v4().to_string(),
@@ -39,7 +40,7 @@ fn create(
             create_invitation(conn, data).and_then(|link| {
                 Ok(Json(APIResponse {
                     success: true,
-                    result: Some(InvitationResp { link }),
+                    result: Some(InvitationResponse { link }),
                 }))
             })
         })
@@ -47,11 +48,7 @@ fn create(
 }
 
 #[post("/<id>/reject")]
-fn reject(
-    id: String,
-    auth_info: AuthInfo,
-    state: State<Storage>,
-) -> APIResult<Message<String>> {
+fn reject(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<Message<String>> {
     let data = LinkActionData {
         uuid: id.clone(),
         username: auth_info.username.clone(),

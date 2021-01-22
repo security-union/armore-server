@@ -1,7 +1,4 @@
-use jsonwebtoken::{
-    dangerous_insecure_decode, decode, Algorithm, DecodingKey,
-    Validation,
-};
+use jsonwebtoken::{dangerous_insecure_decode, decode, Algorithm, DecodingKey, Validation};
 use rocket::http::Status;
 /**
  * Copyright [2020] [Dario Alessandro Lencina Talarico]
@@ -17,33 +14,14 @@ use rocket::http::Status;
  */
 use rocket::request::{FromRequest, Outcome};
 use rocket::{request, Request, State};
-use serde::{Deserialize, Serialize};
 
+use crate::constants::ASIMOV_LIVES;
 use crate::db::telemetry::{get_public_key, get_user_details};
-use crate::model::{APIError, APIJsonResponse, APIResponse, AuthInfo, Storage};
-
-pub static ASIMOV_LIVES: &str = "asimovlives";
-
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub username: String,
-    pub deviceId: String,
-    pub exp: i64,
-}
-
-pub fn postgres_to_api(w: Status) -> APIJsonResponse {
-    APIJsonResponse {
-        json: json!(APIResponse {
-            success: false,
-            result: APIError {
-                message: "Database error, an engineer will be assigned to this issue".to_string(),
-                engineeringError: Option::from(w.to_string())
-            }
-        }),
-        status: Status::Ok,
-    }
-}
+use crate::model::{
+    auth::{AuthInfo, Claims},
+    responses::{APIJsonResponse, Errors::APIError},
+    Storage,
+};
 
 impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
     type Error = APIJsonResponse;
@@ -167,4 +145,3 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
         };
     }
 }
-

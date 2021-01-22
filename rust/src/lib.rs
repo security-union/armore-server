@@ -21,18 +21,17 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use(lazy_static)]
 extern crate lazy_static;
+extern crate redis;
 
 pub mod invitations;
 pub mod emergency;
 pub mod http_gateway;
 
-pub mod auth;
+pub mod middleware;
 pub mod constants;
-pub mod cors;
-pub mod catchers;
 pub mod db;
 
 pub mod model;
-pub mod publish_websocket_messages;
+pub mod messaging;
 pub mod slack;
-pub mod strings;
+pub mod lang;

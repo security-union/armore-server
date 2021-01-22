@@ -1,4 +1,4 @@
-use lib::auth::ASIMOV_LIVES;
+use lib::constants::ASIMOV_LIVES;
 use lib::invitations::handlers::rocket;
 use rocket::local::Client;
 use rocket::http::{Header, Status};

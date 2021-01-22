@@ -10,7 +10,7 @@ use tokio::runtime::Runtime;
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
 use lib::db::get_pool;
 use lib::db::telemetry::force_refresh_telemetry_internal;
-use lib::model::AuthInfo;
+use lib::model::auth::AuthInfo;
 use lib::slack::send_nanny_slack_message;
 
 use crate::redis::Commands;

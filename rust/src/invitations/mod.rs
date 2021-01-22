@@ -1,12 +1,14 @@
 pub mod handlers;
 
-use crate::db::{telemetry::postgres_to_api, transaction};
+use crate::db::transaction;
+use crate::lang::{get_dictionary, TranslationIds};
+use crate::messaging::{build_user_push_notifications, send_notification};
 use crate::model::{
-    APIInternalError, AcceptedNotificationData, InvitationState, LinkActionData, LinkCreationData,
-    NotificationData, PostgresConnection,
+    invitations::{InvitationState, LinkActionData, LinkCreationData},
+    notifications::{AcceptedNotificationData, NotificationData},
+    responses::Errors::APIInternalError,
+    PostgresConnection,
 };
-use crate::publish_websocket_messages::{build_user_push_notifications, send_notification};
-use crate::strings::{get_dictionary, TranslationIds};
 use amiquip::{Channel, Result};
 use chrono::Utc;
 use postgres::row::Row;
@@ -25,7 +27,7 @@ pub fn create_invitation(
         &[&data.uuid, &SystemTime::from(data.exp_date), &data.username],
     )
     .and_then(|_| Ok(format!("{}/{}", INV_ENDPOINT, data.uuid)))
-    .map_err(|w| postgres_to_api(w))
+    .map_err(|w| APIInternalError::from_postgres_err(w))
 }
 
 /// Tries to set the State of an invitation
@@ -39,7 +41,7 @@ pub fn reject_invitation(
         &[&data.username, &data.uuid, &InvitationState::REJECTED],
     )
     .and_then(|_| Ok(()))
-    .map_err(|w| postgres_to_api(w))
+    .map_err(|w| APIInternalError::from_postgres_err(w))
 }
 
 /// Try to set the State of an invitation to ACCEPTED.
@@ -126,7 +128,8 @@ fn push_accepted_notification(
                 body,
             },
             conn
-        )).to_string(),
+        ))
+        .to_string(),
     )
     .map_err(|w| APIInternalError {
         msg: TranslationIds::BackendIssue,
@@ -141,7 +144,7 @@ pub fn remove_friends(
 ) -> Result<(), APIInternalError> {
     conn.execute("call remove_friend($1, $2)", &[&user1, &user2])
         .and_then(|_| Ok(()))
-        .map_err(|w| postgres_to_api(w))
+        .map_err(|w| APIInternalError::from_postgres_err(w))
 }
 
 pub fn get_invitation_creator(
@@ -166,7 +169,7 @@ fn get_inv_creator(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIIn
         ON lnk.id = $1 AND ud.username = lnk.creator_username",
         &[&id.to_string()],
     )
-    .map_err(|w| postgres_to_api(w))
+    .map_err(|w| APIInternalError::from_postgres_err(w))
     .and_then(|rows| {
         rows.into_iter().next().ok_or(APIInternalError {
             msg: TranslationIds::InvitationsInvitationDoesNotExist,
@@ -180,7 +183,7 @@ fn get_invitation(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIInt
         "SELECT * FROM link_invitations WHERE id = $1",
         &[&id.to_string()],
     )
-    .map_err(|w| postgres_to_api(w))
+    .map_err(|w| APIInternalError::from_postgres_err(w))
     .and_then(|rows| {
         rows.into_iter().next().ok_or(APIInternalError {
             msg: TranslationIds::InvitationsInvitationDoesNotExist,
@@ -202,7 +205,7 @@ pub fn assert_not_friends(
         "SELECT * FROM users_followers WHERE username IN ($1, $2) AND username_follower IN ($1, $2)",
         &[user1, user2],
     )
-    .map_err(|w| postgres_to_api(w))
+    .map_err(|w| APIInternalError::from_postgres_err(w))
     .and_then(|rows| {
         rows.into_iter().next()
             .ok_or(APIInternalError {
@@ -252,7 +255,7 @@ fn set_invitation_expired(
         "UPDATE link_invitations SET state = $1 WHERE id = $2",
         &[&InvitationState::EXPIRED, &id],
     )
-    .map_err(|w| postgres_to_api(w))
+    .map_err(|w| APIInternalError::from_postgres_err(w))
     .and_then(|_| {
         Err(APIInternalError {
             msg: TranslationIds::InvitationsInvitationIsNoLongerValid,
@@ -260,4 +263,3 @@ fn set_invitation_expired(
         })
     })
 }
-

@@ -10,68 +10,70 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- use postgres::{NoTls, Row};
- use r2d2::PooledConnection;
- use r2d2_postgres::PostgresConnectionManager;
- 
- use super::telemetry::postgres_to_api;
- use crate::model::{APIInternalError, Device};
- use crate::strings::TranslationIds;
- 
- fn row_to_device(row: &Row) -> Option<Device> {
-     return Option::Some(Device {
-         deviceId: row.get("device_id"),
-         role: row.get("role"),
-         name: row.get("name"),
-         lastUpdatedTimestamp: None,
-         locationPermissionState: row.get("location_permission_state"),
-         isNotificationsEnabled: row.get("is_notifications_enabled"),
-         isBackgroundRefreshOn: row.get("is_background_refresh_on"),
-         isLocationServicesOn: row.get("is_location_services_on"),
-         isPowerSaveModeOn: row.get("is_power_save_mode_on"),
-         os: row.get("os"),
-         osVersion: row.get("os_version"),
-         model: row.get("model"),
-         pushToken: row.get("push_token"),
-         appVersion: row.get("app_version"),
-     });
- }
- 
- pub fn get_device_by_id(
-     device_id: &str,
-     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
- ) -> Result<Device, APIInternalError> {
-     // Select the last row for this device_id
-     let latest_device_settings_statement = client
-         .prepare(
-             "
+use postgres::{NoTls, Row, Statement};
+use r2d2::PooledConnection;
+use r2d2_postgres::PostgresConnectionManager;
+
+use crate::lang::TranslationIds;
+use crate::model::{
+    devices::{Device, OS},
+    responses::Errors::APIInternalError,
+};
+
+fn row_to_device(row: &Row) -> Option<Device> {
+    return Option::Some(Device {
+        deviceId: row.get("device_id"),
+        role: row.get("role"),
+        name: row.get("name"),
+        lastUpdatedTimestamp: None,
+        locationPermissionState: row.get("location_permission_state"),
+        isNotificationsEnabled: row.get("is_notifications_enabled"),
+        isBackgroundRefreshOn: row.get("is_background_refresh_on"),
+        isLocationServicesOn: row.get("is_location_services_on"),
+        isPowerSaveModeOn: row.get("is_power_save_mode_on"),
+        os: row.get("os"),
+        osVersion: row.get("os_version"),
+        model: row.get("model"),
+        pushToken: row.get("push_token"),
+        appVersion: row.get("app_version"),
+    });
+}
+
+pub fn get_device_by_id(
+    device_id: &str,
+    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
+) -> Result<Device, APIInternalError> {
+    // Select the last row for this device_id
+    let latest_device_settings_statement = client
+        .prepare(
+            "
                  SELECT *
                  FROM devices
                  WHERE device_id = $1
                  ",
-         )
-         .map_err(postgres_to_api)?;
-     match client
-         .query(&latest_device_settings_statement, &[&device_id])
-         .map_err(postgres_to_api)?
-         .iter()
-         .fold(None, |_acc, row| row_to_device(row))
-     {
-         Some(d) => Ok(d),
-         None => Err(APIInternalError {
-             msg: TranslationIds::DeviceNotFound,
-             engineering_error: None,
-         }),
-     }
- }
- 
- pub fn update_device_settings(
-     device_update: Device,
-     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
- ) -> Result<bool, APIInternalError> {
-     let insert_statement = client
-         .prepare(
-             "
+        )
+        .map_err(APIInternalError::from_postgres_err)?;
+    match client
+        .query(&latest_device_settings_statement, &[&device_id])
+        .map_err(APIInternalError::from_postgres_err)?
+        .iter()
+        .fold(None, |_acc, row| row_to_device(row))
+    {
+        Some(d) => Ok(d),
+        None => Err(APIInternalError {
+            msg: TranslationIds::DeviceNotFound,
+            engineering_error: None,
+        }),
+    }
+}
+
+pub fn update_device_settings(
+    device_update: Device,
+    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
+) -> Result<bool, APIInternalError> {
+    let insert_statement = client
+        .prepare(
+            "
              UPDATE devices SET
                  app_version=$2,
                  is_background_refresh_on=$3,
@@ -85,35 +87,62 @@
              WHERE device_id = $1
              RETURNING *
          ",
-         )
-         .map_err(postgres_to_api)?;
- 
-     let new_device = client
-         .query(
-             &insert_statement,
-             &[
-                 &device_update.deviceId,
-                 &device_update.appVersion,
-                 &device_update.isBackgroundRefreshOn,
-                 &device_update.isLocationServicesOn,
-                 &device_update.isNotificationsEnabled,
-                 &device_update.isPowerSaveModeOn,
-                 &device_update.locationPermissionState,
-                 &device_update.model,
-                 &device_update.os,
-                 &device_update.osVersion,
-             ],
-         )
-         .map_err(postgres_to_api)?
-         .iter()
-         .fold(None, |_acc, row| row_to_device(row));
- 
-     match new_device {
-         Some(_) => Ok(true),
-         None => Err(APIInternalError {
-             msg: TranslationIds::DeviceNotUpdated,
-             engineering_error: None,
-         }),
-     }
- }
- 
+        )
+        .map_err(APIInternalError::from_postgres_err)?;
+
+    let new_device = client
+        .query(
+            &insert_statement,
+            &[
+                &device_update.deviceId,
+                &device_update.appVersion,
+                &device_update.isBackgroundRefreshOn,
+                &device_update.isLocationServicesOn,
+                &device_update.isNotificationsEnabled,
+                &device_update.isPowerSaveModeOn,
+                &device_update.locationPermissionState,
+                &device_update.model,
+                &device_update.os,
+                &device_update.osVersion,
+            ],
+        )
+        .map_err(APIInternalError::from_postgres_err)?
+        .iter()
+        .fold(None, |_acc, row| row_to_device(row));
+
+    match new_device {
+        Some(_) => Ok(true),
+        None => Err(APIInternalError {
+            msg: TranslationIds::DeviceNotUpdated,
+            engineering_error: None,
+        }),
+    }
+}
+
+pub fn get_subscriber_device_ids(
+    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
+    username: &String,
+) -> Option<Vec<(String, OS)>> {
+    let statement: Option<Statement> = client
+        .prepare(
+            "SELECT users_devices.device_id, devices.os \
+            FROM users_devices JOIN devices \
+            ON users_devices.device_id = devices.device_id \
+            WHERE users_devices.username=$1 AND users_devices.owner = true",
+        )
+        .ok();
+
+    let query = statement
+        .map(|statement| client.query(&statement, &[&username]).ok())
+        .flatten();
+
+    query.map(|rows| {
+        rows.into_iter()
+            .map(|row| {
+                let device_id: String = row.get("device_id");
+                let os: OS = row.get("os");
+                (device_id, os)
+            })
+            .collect()
+    })
+}

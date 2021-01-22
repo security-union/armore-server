@@ -22,8 +22,8 @@ use r2d2::Pool;
 use r2d2_postgres::PostgresConnectionManager;
 
 use super::model::{PostgresConnection, PostgresPool, Storage};
-use crate::model::APIInternalError;
-use crate::strings::TranslationIds;
+use crate::model::responses::Errors::APIInternalError;
+use crate::lang::TranslationIds;
 use rocket::State;
 
 pub mod devices;
