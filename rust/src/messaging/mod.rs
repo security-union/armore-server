@@ -19,13 +19,26 @@ use amiquip::{
     Channel, Connection, ExchangeDeclareOptions, ExchangeType, Publish, Result as RabbitResult,
 };
 use chrono::Utc;
-use postgres::{NoTls, Statement};
+use postgres::NoTls;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
-
+use crate::controllers::devices::get_subscriber_device_ids;
+use crate::lang::TranslationIds;
 use crate::model::{
-    NotificationData, PushNotification, TelemetryUpdate, TelemetryWebsocketUpdate, DATE_FORMAT, OS,
+    responses::Errors::APIInternalError,
+    notifications::{NotificationData, PushNotification},
+    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
+    devices::OS,
 };
+
+use std::{
+    sync::{Arc, Mutex},
+};
+use rocket::State;
+
+use crate::constants::DATE_FORMAT;
+
+pub mod slack;
 
 static WEBSOCKET_EXCHANGE: &str = "websocket.exchange";
 pub static NOTIFICATIONS_EXCHANGE: &str = "notifications.exchange";
@@ -41,6 +54,14 @@ pub fn get_rabbitmq_uri() -> String {
         "amqp://{}:{}@{}/{}",
         rabbitmq_user, rabbitmq_pass, rabbitmq_host, rabbitmq_vhost
     )
+}
+
+pub fn unlock_channel(state: State<Arc<Mutex<Connection>>>) -> Result<Channel, APIInternalError> {
+    let mut guard = state.lock().expect("Rabbit Connection was poisoned");
+    guard.open_channel(None).map_err(|w| APIInternalError {
+        msg: TranslationIds::BackendIssue,
+        engineering_error: Some(w.to_string()),
+    })
 }
 
 pub fn send_ws_message(
@@ -186,32 +207,4 @@ pub fn send_force_refresh(
         ));
     }
     Ok(())
-}
-
-pub fn get_subscriber_device_ids(
-    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
-    username: &String,
-) -> Option<Vec<(String, OS)>> {
-    let statement: Option<Statement> = client
-        .prepare(
-            "SELECT users_devices.device_id, devices.os \
-            FROM users_devices JOIN devices \
-            ON users_devices.device_id = devices.device_id \
-            WHERE users_devices.username=$1 AND users_devices.owner = true",
-        )
-        .ok();
-
-    let query = statement
-        .map(|statement| client.query(&statement, &[&username]).ok())
-        .flatten();
-
-    query.map(|rows| {
-        rows.into_iter()
-            .map(|row| {
-                let device_id: String = row.get("device_id");
-                let os: OS = row.get("os");
-                (device_id, os)
-            })
-            .collect()
-    })
 }

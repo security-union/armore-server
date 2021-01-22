@@ -1,20 +1,17 @@
-pub mod handlers;
-
-use crate::db::telemetry::{get_user_details, postgres_to_api};
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
-    model::{DynamicEmailTemplateData, UserDetails},
-};
-use crate::{
+    controllers::telemetry::get_user_details,
+    lang::{get_dictionary, TranslationIds},
+    messaging::{build_user_push_notifications, send_notification},
     model::{
-        APIInternalError, Email, NotificationData, NotificationRecipient, PostgresConnection,
-        PushNotification, UserState,
+        emergency::UserState,
+        notifications::{
+            DynamicEmailTemplateData, Email, NotificationData, NotificationRecipient,
+            PushNotification,
+        },
+        responses::Errors::APIInternalError,
+        PostgresConnection, UserDetails,
     },
-    publish_websocket_messages::send_notification,
-};
-use crate::{
-    publish_websocket_messages::build_user_push_notifications,
-    strings::{get_dictionary, TranslationIds},
 };
 use amiquip::{Channel, Result};
 use rocket_contrib::json::JsonValue;
@@ -34,7 +31,7 @@ pub fn update_user_state(
     })
     .and_then(|updated_rows| {
         if updated_rows < 1 {
-            Err(user_state_error(state))
+            Err(APIInternalError::user_state_error(state))
         } else {
             Ok(())
         }
@@ -48,11 +45,11 @@ pub fn send_emergency_notifications(
     state: &UserState,
 ) -> Result<(), APIInternalError> {
     let sender_details = get_user_details(username, conn)
-        .map_err(|w| postgres_to_api(w))?
+        .map_err(|w| APIInternalError::from_postgres_err(w))?
         .unwrap();
 
     get_emergency_connections(conn, username)
-        .map_err(|w| postgres_to_api(w))
+        .map_err(|w| APIInternalError::from_postgres_err(w))
         .map(|recipients| build_recipients_notifications(conn, recipients, &sender_details, state))
         .and_then(|values| {
             send_notification(channel, json!(values).to_string()).map_err(|w| APIInternalError {
@@ -177,14 +174,4 @@ pub fn get_emergency_connections(
             })
             .collect()
     })
-}
-
-fn user_state_error(user_state: UserState) -> APIInternalError {
-    APIInternalError {
-        msg: match user_state {
-            UserState::Normal => TranslationIds::UserAlreadyInNormal,
-            UserState::Emergency => TranslationIds::UserAlreadyInEmergency,
-        },
-        engineering_error: None,
-    }
 }

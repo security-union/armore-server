@@ -1,6 +1,6 @@
 use chrono::Utc;
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-use lib::auth::Claims;
+use lib::model::auth::Claims;
 
 pub static MOCK_PUBLIC_KEY: &str =
     "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA6lORI0goLg5HUlkcnnAO

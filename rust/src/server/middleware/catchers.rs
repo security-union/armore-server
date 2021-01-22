@@ -1,5 +1,5 @@
+use crate::model::responses::{APIResponse, Errors::APIError};
 use crate::rocket::Catcher;
-use crate::model::{APIError, APIResponse};
 use crate::rocket::{self, Request};
 use crate::rocket_contrib::json::Json;
 

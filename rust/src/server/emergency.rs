@@ -1,14 +1,17 @@
-use super::{send_emergency_notifications, update_user_state};
+use crate::controllers::emergency::{send_emergency_notifications, update_user_state};
 use amiquip::Connection as RabbitConnection;
 
+use super::middleware::{catchers::catchers, cors::options};
+
 use crate::{
-    cors::options,
-    db::{get_connection, get_pool, unlock_channel},
-    catchers::catchers,
+    db::{get_connection, get_pool},
+    messaging::{get_rabbitmq_uri, unlock_channel},
     model::{
-        APIJsonResponse, APIResponse, APIResult, AuthInfo, Message, Storage, UpdateState, UserState,
+        auth::AuthInfo,
+        emergency::{UpdateState, UserState},
+        responses::{APIJsonResponse, APIResponse},
+        APIResult, Message, Storage,
     },
-    publish_websocket_messages::get_rabbitmq_uri,
 };
 use log::error;
 use rocket::{Rocket, State};

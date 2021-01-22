@@ -1,11 +1,11 @@
 use amiquip::Connection as RabbitConnection;
 use lib::{
     db::get_pool,
-    model::{NotificationData, OS},
-    publish_websocket_messages::{
+    messaging::{
         build_user_push_notifications, create_force_refresh_json, get_rabbitmq_uri,
         send_force_refresh,
     },
+    model::{devices::OS, notifications::NotificationData},
 };
 
 mod common;
