@@ -1,0 +1,59 @@
+{{- $globalContext := . }}
+{{- range .Values.jobs }}
+{{- if .enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-%s" (include "armore.fullname" $) .name | trunc 63 }}
+  labels:
+    {{- include "armore.labels" $ | nindent 4 }}
+    app: {{ .name }}
+  {{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  template:
+    metadata:
+      {{- with .podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "armore.selectorLabels" $ | nindent 8 }}
+        app: {{ .name }}
+    spec:
+      containers:
+        - name: {{ .name }}
+          image: {{ printf "%s:%s" .image.repository .image.tag }}
+          {{- with .command }}
+          command: {{ . }}
+          {{- end }}
+          {{- with .args }}
+          args: {{ . }}
+          {{- end }}
+          env:
+          {{- with .env }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- range .dependencies }}
+            {{- $func := printf "armore.%s" . }}
+            {{- include $func $ | nindent 12 }}
+          {{- end }}
+          {{- if and .cloudSql $globalContext.Values.tags.cloudSql -}}
+          {{- printf "volumeMounts:" | nindent 10 }}
+            {{- include "armore.cloudSqlVolumeMount" $ | nindent 12 }}
+        {{- include "armore.cloudSqlSidecar" $ | nindent 8 }}
+          {{- end }}
+      {{- if and .cloudSql $globalContext.Values.tags.cloudSql }}
+      volumes:
+        {{- include "armore.cloudSqlVolume" $ | nindent 8 }}
+      {{- end }}
+      restartPolicy: {{ .restartPolicy }}
+  ttlSecondsAfterFinished: {{ .ttlSecondsAfterFinished }}
+  {{- with .backoffLimit }}
+  backoffLimit: {{ . }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}
