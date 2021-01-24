@@ -15,7 +15,7 @@ use rocket_contrib::json::Json;
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
     controllers::telemetry::get_user_details,
-    lang::{get_dictionary, TranslationIds},
+    lang::{get_glossary, TranslationIds},
     messaging::{build_user_push_notifications, send_notification},
     model::{
         notifications::{
@@ -173,7 +173,7 @@ fn build_emergency_email(
     state: &UserState,
 ) -> Email {
     let data = build_notification_data_from_recipient(sender, recipient, state);
-    let link = get_dictionary(&recipient.language.clone().unwrap())
+    let link = get_glossary(&recipient.language.clone().unwrap())
         .get(&TranslationIds::PushNotificationActionView)
         .unwrap()
         .to_string();
@@ -200,7 +200,7 @@ fn build_notification_data_from_recipient(
     recipient: &UserDetails,
     state: &UserState,
 ) -> NotificationData {
-    let body = get_dictionary(&recipient.language.clone().unwrap())
+    let body = get_glossary(&recipient.language.clone().unwrap())
         .get(match state {
             UserState::Emergency => &TranslationIds::EmergencyModePushNotificationBody,
             UserState::Normal => &TranslationIds::NormalModePushNotificationBody,

@@ -1,6 +1,6 @@
 use crate::constants::INV_ENDPOINT;
 use crate::db::transaction;
-use crate::lang::{get_dictionary, TranslationIds};
+use crate::lang::{get_glossary, TranslationIds};
 use crate::messaging::{build_user_push_notifications, send_notification};
 use crate::model::{
     invitations::{InvitationState, LinkActionData, LinkCreationData},
@@ -106,10 +106,10 @@ fn push_accepted_notification(
     channel: &Channel,
     data: &AcceptedNotificationData,
 ) -> Result<(), APIInternalError> {
-    let push_inv_title = get_dictionary(&data.language)
+    let push_inv_title = get_glossary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedTitle)
         .unwrap_or(&"Unknow Error");
-    let push_inv_body = get_dictionary(&data.language)
+    let push_inv_body = get_glossary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedBody)
         .unwrap_or(&"Unknow Error");
     let title = format!("{} {}", &data.recipient, push_inv_title);

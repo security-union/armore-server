@@ -27,7 +27,7 @@ impl APIJsonResponse {
         internal_error: APIInternalError,
         lang: &str,
     ) -> APIJsonResponse {
-        let translated_error = lang::get_dictionary(lang).get(&internal_error.msg);
+        let translated_error = lang::get_glossary(lang).get(&internal_error.msg);
 
         APIJsonResponse::api_error(
             translated_error.unwrap_or(&"Unknown error").to_string(),
