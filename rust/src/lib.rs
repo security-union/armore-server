@@ -27,7 +27,6 @@ pub mod controllers;
 pub mod server;
 pub mod constants;
 pub mod db;
-
 pub mod model;
 pub mod messaging;
 pub mod lang;
