@@ -30,7 +30,7 @@ pub enum TranslationIds {
 }
 
 
-pub fn get_dictionary(language: &str) -> &'static HashMap<TranslationIds, &'static str> {
+pub fn get_glossary(language: &str) -> &'static HashMap<TranslationIds, &'static str> {
     match language {
         "es" => (&SPANISH as &HashMap<TranslationIds, &'static str>),
         _ => (&ENGLISH as &HashMap<TranslationIds, &'static str>),
