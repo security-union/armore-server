@@ -7,7 +7,7 @@ use chrono::Utc;
 pub fn assert_valid_location_historical_start(
     start_time: &NaiveDateTime,
 ) -> Result<(), APIInternalError> {
-    let week_ago: &NaiveDateTime = &(Utc::now().naive_utc() - Duration::weeks(1));
+    let week_ago: &NaiveDateTime = &(Utc::now() - Duration::weeks(1)).naive_utc();
     if start_time < week_ago {
         return Err(APIInternalError {
             msg: TranslationIds::InvalidHistoricalLocationStartTime,
@@ -16,3 +16,5 @@ pub fn assert_valid_location_historical_start(
     }
     Ok(())
 }
+
+

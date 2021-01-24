@@ -41,8 +41,8 @@ pub fn get_historical_location(
     range: &DateTimeRange,
 ) -> APIResult<Vec<Location>> {
     assert_valid_location_historical_start(&range.start_time)
-        .and_then(|_| assert_emergency_user(conn, &emergency_user))
         .and_then(|_| assert_not_friends(conn, &auth_info.username, &emergency_user))
+        .and_then(|_| assert_emergency_user(conn, &emergency_user))
         .and_then(|_| get_historical_telemetry(conn, &auth_info.username, &emergency_user, &range))
         .and_then(|historic| {
             Ok(Json(APIResponse {
@@ -55,6 +55,7 @@ pub fn get_historical_location(
 
 /// Set user state to Normal or Emergency.
 /// Send emergency notifications to friends
+///
 /// @return APIResult<Message<UserState>>
 pub fn update_user_state(
     conn: &mut PostgresConnection,
@@ -108,17 +109,15 @@ fn send_emergency_notifications(
     state: &UserState,
 ) -> Result<(), APIInternalError> {
     let sender_details = get_user_details(username, conn)
-        .map_err(|w| APIInternalError::from_db_err(w))?
+        .map_err(APIInternalError::from_db_err)?
         .unwrap();
 
     get_emergency_connections(conn, username)
-        .map_err(|w| APIInternalError::from_db_err(w))
+        .map_err(APIInternalError::from_db_err)
         .map(|recipients| build_recipients_notifications(conn, recipients, &sender_details, state))
         .and_then(|values| {
-            send_notification(channel, json!(values).to_string()).map_err(|w| APIInternalError {
-                msg: TranslationIds::BackendIssue,
-                engineering_error: Some(w.to_string()),
-            })
+            send_notification(channel, json!(values).to_string())
+                .map_err(APIInternalError::from_db_err)
         })
 }
 
@@ -239,7 +238,7 @@ pub fn get_emergency_connections(
     })
 }
 
-pub fn get_historical_telemetry(
+fn get_historical_telemetry(
     conn: &mut PostgresConnection,
     req_user: &String,
     emergency_user: &String,

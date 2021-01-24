@@ -6,6 +6,7 @@ use super::{
 use crate::constants::DATE_FORMAT;
 use chrono::NaiveDateTime;
 use postgres_types::{FromSql, ToSql};
+use serde::ser::{SerializeStruct, Serializer};
 use serde::{Deserialize, Serialize};
 
 #[allow(non_snake_case)]
@@ -63,11 +64,24 @@ pub enum CommandState {
     Error,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub struct Location {
     pub data: String,
-    pub timestamp: String,
+    pub timestamp: NaiveDateTime,
     pub device_id: String,
+}
+
+impl Serialize for Location {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("Location", 3)?;
+        s.serialize_field("data", &self.data)?;
+        s.serialize_field("device_id", &self.device_id)?;
+        s.serialize_field("timestamp", &self.timestamp.format(DATE_FORMAT).to_string())?;
+        s.end()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -82,7 +96,6 @@ impl DateTimeRange {
             .or_else(|err| Err(err.to_string()))?;
         let end_time = NaiveDateTime::parse_from_str(end_time, DATE_FORMAT)
             .or_else(|err| Err(err.to_string()))?;
-            
         if start_time <= end_time {
             Ok(DateTimeRange {
                 start_time,

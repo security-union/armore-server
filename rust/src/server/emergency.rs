@@ -32,7 +32,7 @@ fn update_state(
         })
 }
 
-#[get("/telemetry/<username>?<start_time>&<end_time>")]
+#[get("/<username>/telemetry?<start_time>&<end_time>")]
 fn get_user_historical_location(
     username: String,
     start_time: String,
@@ -52,7 +52,7 @@ pub fn rocket() -> Rocket {
     let rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
         .expect("Error getting rabbitMq Connection");
     rocket::ignite()
-        .mount("/v1/emergency", routes![update_state])
+        .mount("/v1/emergency", routes![update_state, get_user_historical_location])
         .register(catchers())
         .attach(options())
         .manage(Storage {
