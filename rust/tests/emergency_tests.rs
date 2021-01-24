@@ -2,7 +2,7 @@ use amiquip::{Connection, QueueDeleteOptions};
 use lib::constants::ASIMOV_LIVES;
 use lib::server::emergency::rocket;
 use lib::{
-    controllers::emergency::{get_emergency_connections, update_user_state},
+    controllers::emergency::{get_emergency_connections, update_state},
     model::emergency::UserState,
     messaging::get_rabbitmq_uri,
 };
@@ -83,7 +83,7 @@ fn test_report_emergency_on_emergency_state() {
     let token = create_token("dario", "dario_iphone").unwrap();
     let pool = get_pool();
     let mut conn = pool.get().unwrap();
-    update_user_state(&mut conn, &String::from("dario"), UserState::Emergency).unwrap();
+    update_state(&mut conn, &String::from("dario"), &UserState::Emergency).unwrap();
 
     let mut request = client.post("/v1/emergency/state");
     request.add_header(Header::new("Content-Type", "application/json"));
@@ -113,7 +113,7 @@ fn test_update_to_normal() {
 
     let pool = get_pool();
     let mut conn = pool.get().unwrap();
-    update_user_state(&mut conn, &String::from("dario"), UserState::Emergency).unwrap();
+    update_state(&mut conn, &String::from("dario"), &UserState::Emergency).unwrap();
 
     let mut request = client.post("/v1/emergency/state");
     request.add_header(Header::new("Content-Type", "application/json"));
@@ -162,8 +162,8 @@ fn test_users_state_changes_stored_correctly() {
 
     let pool = get_pool();
     let mut conn = pool.get().unwrap();
-    update_user_state(&mut conn, &username, UserState::Emergency).unwrap();
-    update_user_state(&mut conn, &username, UserState::Normal).unwrap();
+    update_state(&mut conn, &username, &UserState::Emergency).unwrap();
+    update_state(&mut conn, &username, &UserState::Normal).unwrap();
 
     conn.query(
         "SELECT * FROM users_state_history 

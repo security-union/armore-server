@@ -23,6 +23,7 @@ lazy_static! {
         (TranslationIds::UserNotInEmergency, "This user is not in an emergency"),
         (TranslationIds::EmergencyModePushNotificationBody, "is in an EMERGENCY! Please CONFIRM that they are okay!!"),
         (TranslationIds::NormalModePushNotificationBody, "is no longer in an emergency."),
+        (TranslationIds::InvalidHistoricalLocationStartTime, "It is not possible to obtain the location from more than a week ago."),
         (TranslationIds::PushNotificationActionView, "Go to app")
     ].into_iter().collect();
 }

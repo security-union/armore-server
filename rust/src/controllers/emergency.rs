@@ -1,15 +1,27 @@
+use crate::model::{
+    auth::AuthInfo,
+    emergency::UserState,
+    responses::{APIJsonResponse, APIResponse},
+    telemetry::{DateTimeRange, Location},
+    APIResult, Message,
+};
+use crate::server::validators::{
+    datetime::assert_valid_location_historical_start, emergency_user::assert_emergency_user,
+    friends::assert_not_friends,
+};
+use log::error;
+use rocket_contrib::json::Json;
+
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
     controllers::telemetry::get_user_details,
     lang::{get_dictionary, TranslationIds},
     messaging::{build_user_push_notifications, send_notification},
     model::{
-        emergency::UserState,
         notifications::{
             DynamicEmailTemplateData, Email, NotificationData, NotificationRecipient,
             PushNotification,
         },
-        telemetry::Location,
         responses::Errors::APIInternalError,
         PostgresConnection, UserDetails,
     },
@@ -17,37 +29,90 @@ use crate::{
 use amiquip::{Channel, Result};
 use rocket_contrib::json::JsonValue;
 
+/// Get the historical location of a user for a given range
+/// Assert if location range is valid, user is in emergency and
+/// both users are friends.
+///
+/// @return APIResult<Vec<Location>>
+pub fn get_historical_location(
+    conn: &mut PostgresConnection,
+    auth_info: &AuthInfo,
+    emergency_user: &String,
+    range: &DateTimeRange,
+) -> APIResult<Vec<Location>> {
+    assert_valid_location_historical_start(&range.start_time)
+        .and_then(|_| assert_emergency_user(conn, &emergency_user))
+        .and_then(|_| assert_not_friends(conn, &auth_info.username, &emergency_user))
+        .and_then(|_| get_historical_telemetry(conn, &auth_info.username, &emergency_user, &range))
+        .and_then(|historic| {
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(historic),
+            }))
+        })
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+}
+
+/// Set user state to Normal or Emergency.
+/// Send emergency notifications to friends
+/// @return APIResult<Message<UserState>>
 pub fn update_user_state(
     conn: &mut PostgresConnection,
+    channel: &Channel,
+    auth_info: &AuthInfo,
+    state: &UserState,
+) -> APIResult<Message<UserState>> {
+    update_state(conn, &auth_info.username, state)
+        .and_then(|_| {
+            send_emergency_notifications(conn, &channel, &auth_info.username, state)
+                .map_err(|err| {
+                    error!(
+                        "{}",
+                        err.engineering_error.unwrap_or("Unknown Error".to_string())
+                    );
+                })
+                .ok();
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(Message {
+                    message: state.clone(),
+                }),
+            }))
+        })
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+}
+
+pub fn update_state(
+    conn: &mut PostgresConnection,
     username: &String,
-    state: UserState,
+    state: &UserState,
 ) -> Result<(), APIInternalError> {
     conn.execute(
         "UPDATE users_state set self_perception = $1 where username = $2 AND self_perception != $1",
         &[&state, username],
     )
-    .map_err(APIInternalError::from_postgres_err)
+    .map_err(APIInternalError::from_db_err)
     .and_then(|updated_rows| {
         if updated_rows < 1 {
-            Err(APIInternalError::user_state_error(state))
+            Err(APIInternalError::user_state_error(*state))
         } else {
             Ok(())
         }
     })
 }
 
-pub fn send_emergency_notifications(
+fn send_emergency_notifications(
     conn: &mut PostgresConnection,
     channel: &Channel,
     username: &String,
     state: &UserState,
 ) -> Result<(), APIInternalError> {
     let sender_details = get_user_details(username, conn)
-        .map_err(|w| APIInternalError::from_postgres_err(w))?
+        .map_err(|w| APIInternalError::from_db_err(w))?
         .unwrap();
 
     get_emergency_connections(conn, username)
-        .map_err(|w| APIInternalError::from_postgres_err(w))
+        .map_err(|w| APIInternalError::from_db_err(w))
         .map(|recipients| build_recipients_notifications(conn, recipients, &sender_details, state))
         .and_then(|values| {
             send_notification(channel, json!(values).to_string()).map_err(|w| APIInternalError {
@@ -109,7 +174,7 @@ fn build_emergency_email(
     state: &UserState,
 ) -> Email {
     let data = build_notification_data_from_recipient(sender, recipient, state);
-    let link = get_dictionary(recipient.language.clone().unwrap())
+    let link = get_dictionary(&recipient.language.clone().unwrap())
         .get(&TranslationIds::PushNotificationActionView)
         .unwrap()
         .to_string();
@@ -136,7 +201,7 @@ fn build_notification_data_from_recipient(
     recipient: &UserDetails,
     state: &UserState,
 ) -> NotificationData {
-    let body = get_dictionary(recipient.language.clone().unwrap())
+    let body = get_dictionary(&recipient.language.clone().unwrap())
         .get(match state {
             UserState::Emergency => &TranslationIds::EmergencyModePushNotificationBody,
             UserState::Normal => &TranslationIds::NormalModePushNotificationBody,
@@ -178,46 +243,24 @@ pub fn get_historical_telemetry(
     conn: &mut PostgresConnection,
     req_user: &String,
     emergency_user: &String,
-    start_time: &String,
-    end_time: &String,
+    range: &DateTimeRange,
 ) -> Result<Vec<Location>, APIInternalError> {
     conn.query(
         "SELECT encrypted_location, device_id, creation_timestamp AS timestamp
          FROM device_telemetry WHERE username = $1 AND recipient_username = $4
          AND creation_timestamp > $2 AND creation_timestamp < $3
          ORDER BY timestamp ASC",
-        &[emergency_user, start_time, end_time, req_user],
+        &[emergency_user, &range.start_time, &range.end_time, req_user],
     )
-    .map_err(APIInternalError::from_postgres_err)
+    .map_err(APIInternalError::from_db_err)
     .map(|results| {
         results
             .into_iter()
             .map(|row| Location {
                 data: row.get("encrypted_location"),
                 device_id: row.get("device_id"),
-                timestamp: row.get("timestamp")
+                timestamp: row.get("timestamp"),
             })
             .collect()
     })
-}
-
-/****************/
-/** ASSERTIONS **/
-/****************/
-pub fn assert_emergency_user(
-    conn: &mut PostgresConnection,
-    username: &String,
-) -> Result<(), APIInternalError> {
-    conn.query(
-        "SELECT * FROM users_state WHERE username = $1 AND self_perception = $2",
-        &[username, &UserState::Emergency],
-    )
-    .map_err(|w| APIInternalError::from_postgres_err(w))
-    .and_then(|rows| {
-        rows.into_iter().next().ok_or(APIInternalError {
-            msg: TranslationIds::UserNotInEmergency,
-            engineering_error: None,
-        })
-    })
-    .and_then(|_| Ok(()))
 }

@@ -1,3 +1,4 @@
+use crate::constants::INV_ENDPOINT;
 use crate::db::transaction;
 use crate::lang::{get_dictionary, TranslationIds};
 use crate::messaging::{build_user_push_notifications, send_notification};
@@ -8,12 +9,9 @@ use crate::model::{
     PostgresConnection,
 };
 use amiquip::{Channel, Result};
-use chrono::Utc;
 use postgres::row::Row;
 use rocket_contrib::json::JsonValue;
 use std::time::SystemTime;
-
-const INV_ENDPOINT: &str = "https://armore.dev/invitations";
 
 /// Try to insert the data into the Database
 /// If OK, generate the link and return it
@@ -25,7 +23,7 @@ pub fn create_invitation(
         &[&data.uuid, &SystemTime::from(data.exp_date), &data.username],
     )
     .and_then(|_| Ok(format!("{}/{}", INV_ENDPOINT, data.uuid)))
-    .map_err(|w| APIInternalError::from_postgres_err(w))
+    .map_err(APIInternalError::from_db_err)
 }
 
 /// Tries to set the State of an invitation
@@ -39,7 +37,7 @@ pub fn reject_invitation(
         &[&data.username, &data.uuid, &InvitationState::REJECTED],
     )
     .and_then(|_| Ok(()))
-    .map_err(|w| APIInternalError::from_postgres_err(w))
+    .map_err(APIInternalError::from_db_err)
 }
 
 /// Try to set the State of an invitation to ACCEPTED.
@@ -108,10 +106,10 @@ fn push_accepted_notification(
     channel: &Channel,
     data: &AcceptedNotificationData,
 ) -> Result<(), APIInternalError> {
-    let push_inv_title = get_dictionary(data.language.clone())
+    let push_inv_title = get_dictionary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedTitle)
         .unwrap_or(&"Unknow Error");
-    let push_inv_body = get_dictionary(data.language.clone())
+    let push_inv_body = get_dictionary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedBody)
         .unwrap_or(&"Unknow Error");
     let title = format!("{} {}", &data.recipient, push_inv_title);
@@ -142,7 +140,7 @@ pub fn remove_friends(
 ) -> Result<(), APIInternalError> {
     conn.execute("call remove_friend($1, $2)", &[&user1, &user2])
         .and_then(|_| Ok(()))
-        .map_err(|w| APIInternalError::from_postgres_err(w))
+        .map_err(APIInternalError::from_db_err)
 }
 
 pub fn get_invitation_creator(
@@ -167,96 +165,10 @@ fn get_inv_creator(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIIn
         ON lnk.id = $1 AND ud.username = lnk.creator_username",
         &[&id.to_string()],
     )
-    .map_err(|w| APIInternalError::from_postgres_err(w))
+    .map_err(APIInternalError::from_db_err)
     .and_then(|rows| {
         rows.into_iter().next().ok_or(APIInternalError {
             msg: TranslationIds::InvitationsInvitationDoesNotExist,
-            engineering_error: None,
-        })
-    })
-}
-
-fn get_invitation(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIInternalError> {
-    conn.query(
-        "SELECT * FROM link_invitations WHERE id = $1",
-        &[&id.to_string()],
-    )
-    .map_err(|w| APIInternalError::from_postgres_err(w))
-    .and_then(|rows| {
-        rows.into_iter().next().ok_or(APIInternalError {
-            msg: TranslationIds::InvitationsInvitationDoesNotExist,
-            engineering_error: None,
-        })
-    })
-}
-
-/****************/
-/** ASSERTIONS **/
-/****************/
-
-pub fn assert_not_friends(
-    conn: &mut PostgresConnection,
-    user1: &String,
-    user2: &String,
-) -> Result<(), APIInternalError> {
-    conn.query(
-        "SELECT * FROM users_followers WHERE username IN ($1, $2) AND username_follower IN ($1, $2)",
-        &[user1, user2],
-    )
-    .map_err(|w| APIInternalError::from_postgres_err(w))
-    .and_then(|rows| {
-        rows.into_iter().next()
-            .ok_or(APIInternalError {
-                msg: TranslationIds::InvitationsYouAreNotFriends,
-                engineering_error: None
-            })
-    })
-    .and_then(|_| Ok(()))
-}
-
-pub fn assert_valid_invitation(
-    conn: &mut PostgresConnection,
-    data: &LinkActionData,
-) -> Result<(), APIInternalError> {
-    get_invitation(conn, &data.uuid).and_then(|row| assert_link_state(conn, &row))
-}
-
-fn assert_link_state(conn: &mut PostgresConnection, row: &Row) -> Result<(), APIInternalError> {
-    let state: InvitationState = row.get("state");
-    match state {
-        InvitationState::CREATED => assert_exp_date(conn, row),
-        _ => Err(APIInternalError {
-            msg: TranslationIds::InvitationsInvitationIsNoLongerValid,
-            engineering_error: None,
-        }),
-    }
-}
-
-fn assert_exp_date(conn: &mut PostgresConnection, row: &Row) -> Result<(), APIInternalError> {
-    let exp_date: chrono::NaiveDateTime = row.get("expiration_timestamp");
-    let id: String = row.get("id");
-    let exp_date = exp_date.timestamp();
-    let now = Utc::now().timestamp();
-
-    if exp_date > now {
-        Ok(())
-    } else {
-        set_invitation_expired(conn, id)
-    }
-}
-
-fn set_invitation_expired(
-    conn: &mut PostgresConnection,
-    id: String,
-) -> Result<(), APIInternalError> {
-    conn.execute(
-        "UPDATE link_invitations SET state = $1 WHERE id = $2",
-        &[&InvitationState::EXPIRED, &id],
-    )
-    .map_err(|w| APIInternalError::from_postgres_err(w))
-    .and_then(|_| {
-        Err(APIInternalError {
-            msg: TranslationIds::InvitationsInvitationIsNoLongerValid,
             engineering_error: None,
         })
     })
