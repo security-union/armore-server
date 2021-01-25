@@ -156,6 +156,76 @@ fn test_update_to_normal_on_normal_state() {
 }
 
 #[test]
+fn test_cant_report_emergency_for_a_friend_in_emergency() {
+    dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
+    insert_mock_friends("dario", "coche");
+
+    let pool = get_pool();
+    let mut conn = pool.get().unwrap();
+    update_state(&mut conn, &String::from("coche"), &UserState::Emergency).unwrap();
+
+    let rocket = rocket();
+    let client = Client::new(rocket).expect("valid rocket instance");
+    let token = create_token("dario", "dario_iphone").unwrap();
+    let mut request = client.post("/v1/emergency/coche/report");
+    request.add_header(Header::new(ASIMOV_LIVES, token));
+    let mut response = request.dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(
+        &response.body_string().unwrap(),
+        r#"{"result":{"engineeringError":null,"message":"Cannot report the emergency"},"success":false}"#
+    );
+}
+#[test]
+fn test_can_report_emergency_for_a_friend_not_in_emergency() {
+    dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
+    insert_mock_friends("dario", "coche");
+
+    let mut rabbit = Connection::insecure_open(&get_rabbitmq_uri()).unwrap();
+    let channel = rabbit.open_channel(None).unwrap();
+    let queue = bind_notifications_queue(&channel);
+
+    let rocket = rocket();
+    let client = Client::new(rocket).expect("valid rocket instance");
+    let token = create_token("dario", "dario_iphone").unwrap();
+    let mut request = client.post("/v1/emergency/coche/report");
+    request.add_header(Header::new(ASIMOV_LIVES, token));
+    let mut response = request.dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(
+        &response.body_string().unwrap(),
+        r#"{"success":true,"result":{"message":"Emergency"}}"#
+    );
+
+    let message = consume_message(&queue);
+    assert_eq!(String::from_utf8_lossy(&message), "[{\"data\":{\"body\":\"Coche Rodríguez is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"dario_iphone\"},{\"dynamicTemplateData\":{\"body\":\"Coche Rodríguez is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandrolencina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"dario\"}]");
+    queue.delete(QueueDeleteOptions::default()).unwrap();
+}
+
+#[test]
+fn test_cant_report_emergency_for_a_non_friend() {
+    dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
+
+    let rocket = rocket();
+    let client = Client::new(rocket).expect("valid rocket instance");
+    let token = create_token("dario", "dario_iphone").unwrap();
+    let mut request = client.post("/v1/emergency/non_friend/report");
+    request.add_header(Header::new(ASIMOV_LIVES, token));
+    let mut response = request.dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(
+        &response.body_string().unwrap(),
+        r#"{"result":{"engineeringError":null,"message":"You are not friends with this user"},"success":false}"#
+    );
+}
+
+#[test]
 fn test_users_state_changes_stored_correctly() {
     dbmate_rebuild();
     let username = String::from("dario");

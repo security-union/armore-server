@@ -39,8 +39,8 @@ fn update_state(
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
-#[post("/<username>/emergency")]
-fn report_friend_emergency(
+#[post("/<username>/report")]
+fn update_friend_state(
     auth_info: AuthInfo,
     username: String,
     storage: State<Storage>,
@@ -92,7 +92,11 @@ pub fn rocket() -> Rocket {
     rocket::ignite()
         .mount(
             "/v1/emergency",
-            routes![update_state, get_user_historical_location],
+            routes![
+                update_state,
+                get_user_historical_location,
+                update_friend_state
+            ],
         )
         .register(catchers())
         .attach(options())
