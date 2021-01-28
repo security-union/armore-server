@@ -1,82 +1,72 @@
+/**
+ * Copyright 2021 Security Union LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 module "gke" {
-  source                     = "terraform-google-modules/kubernetes-engine/google"
-  project_id                 = var.project_id
-  name                       = "dev"
-  region                     = "us-central1"
-  zones                      = ["us-central1-a", "us-central1-b", "us-central1-f"]
-  network                    = "default"
-  subnetwork                 = "default"
-  ip_range_pods              = "us-central1-01-gke-01-pods"
-  ip_range_services          = "us-central1-01-gke-01-services"
-  http_load_balancing        = false
-  horizontal_pod_autoscaling = true
-  network_policy             = true
-  create_service_account     = true
+  source                            = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine//modules/private-cluster?ref=v12.3.0"
+  project_id                        = var.project_id
+  name                              = "${var.name}-cluster"
+  region                            = var.region
+  regional                          = true
+  network                           = module.gke-network.network_name
+  subnetwork                        = module.gke-network.subnets_names[0]
+  ip_range_pods                     = module.gke-network.subnets_secondary_ranges[0].*.range_name[0]
+  ip_range_services                 = module.gke-network.subnets_secondary_ranges[0].*.range_name[1]
+  grant_registry_access             = true
+  enable_private_endpoint           = false
+  enable_private_nodes              = true
+  master_ipv4_cidr_block            = "172.16.0.16/28"
+  network_policy                    = true
+  horizontal_pod_autoscaling        = true
+  service_account                   = "create"
+  remove_default_node_pool          = true
+  disable_legacy_metadata_endpoints = true
+
+  master_authorized_networks = []
 
   node_pools = [
     {
-      name               = "default-node-pool"
+      name               = "${var.name}-node-pool"
       machine_type       = "e2-small"
-      node_locations     = "us-central1-b,us-central1-c"
       min_count          = 1
-      max_count          = 3
-      local_ssd_count    = 0
-      disk_size_gb       = 30
-      disk_type          = "pd-standard"
+      max_count          = 3 
+      disk_size_gb       = 30 
+      disk_type          = "pd-ssd"
       image_type         = "COS"
       auto_repair        = true
-      auto_upgrade       = true
-      preemptible        = true
+      auto_upgrade       = false
+      preemptible        = false
       initial_node_count = 1
     },
   ]
 
   node_pools_oauth_scopes = {
-    all = []
-
-    default-node-pool = [
-      "https://www.googleapis.com/auth/cloud-platform",
-      "https://www.googleapis.com/auth/trace.append",
-      "https://www.googleapis.com/auth/service.management.readonly",
-      "https://www.googleapis.com/auth/monitoring",
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/servicecontrol",
+    all = [
+      "https://www.googleapis.com/auth/cloud-platform",      
     ]
   }
 
   node_pools_labels = {
     all = {}
-
-    default-node-pool = {
-      default-node-pool = true
-    }
   }
 
   node_pools_metadata = {
     all = {}
-
-    default-node-pool = {
-      node-pool-metadata-custom-value = "my-node-pool"
-    }
-  }
-
-  node_pools_taints = {
-    all = []
-
-    default-node-pool = [
-      {
-        key    = "default-node-pool"
-        value  = true
-        effect = "PREFER_NO_SCHEDULE"
-      },
-    ]
   }
 
   node_pools_tags = {
     all = []
-
-    default-node-pool = [
-      "default-node-pool",
-    ]
   }
 }

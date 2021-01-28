@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-variable "name" {
-  description = "The name to prefix resources with"
-}
+provider "google" {}
 
-variable "project_id" {
-  description = "The project ID to host the cluster in"
-}
+provider "google-beta" {}
 
-variable "region" {
-  description = "The region to host the cluster in"
+data "google_client_config" "default" {}
+
+provider "kubernetes" {
+  load_config_file       = false
+  host                   = "https://${module.gke.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(module.gke.ca_certificate)
 }

@@ -14,14 +14,29 @@
  * limitations under the License.
  */
 
-variable "name" {
-  description = "The name to prefix resources with"
-}
+module "gke-network" {
+  source       = "terraform-google-modules/network/google"
+  version      = "~> 2.5"
+  project_id   = var.project_id
+  network_name = "${var.name}-network"
 
-variable "project_id" {
-  description = "The project ID to host the cluster in"
-}
+  subnets = [
+    {
+      subnet_name   = "${var.name}-subnet"
+      subnet_ip     = "10.0.0.0/24"
+      subnet_region = var.region
+    },
+  ]
 
-variable "region" {
-  description = "The region to host the cluster in"
+  secondary_ranges = {
+    "${var.name}-subnet" = [
+      {
+        range_name    = "${var.name}-ip-range-pods"
+        ip_cidr_range = "10.1.0.0/16"
+      },
+      {
+        range_name    = "${var.name}-ip-range-services"
+        ip_cidr_range = "10.2.0.0/20"
+      },
+  ] }
 }
