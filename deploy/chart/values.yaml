@@ -418,45 +418,47 @@ ingress:
         - ws.armore.dev
         - rabbitmq.armore.dev
 
-jobs:
-  dbmateInstall:
-    name: dbmate-on-install
-    enabled: true
-    backoffLimit: 2
-    restartPolicy: OnFailure
-    cloudSql: true
-    dependencies:
-      - postgreSuper
-      - cloudSql
-    env: {}
-    image:
-      repository: ""
-      pullPolicy: Always
-      tag: ""
-    annotations:
-      "helm.sh/hook": post-install
-      "helm.sh/hook-delete-policy": hook-succeeded
-    podAnnotations:
-      app: dbmate
-  dbmateUpgrade:
-    name: dbmate-on-upgrade
-    enabled: true
-    backoffLimit: 2
-    cloudSql: true
-    restartPolicy: OnFailure
-    dependencies:
-      - postgreSuper
-      - cloudSql
-    env: {}
-    image:
-      repository: ""
-      pullPolicy: Always
-      tag: ""
-    annotations:
-      "helm.sh/hook": post-upgrade
-      "helm.sh/hook-delete-policy": hook-succeeded
-    podAnnotations:
-      app: dbmate
+# jobs:
+#   dbmateInstall:
+#     name: dbmate-on-install
+#     enabled: true
+#     backoffLimit: 2
+#     restartPolicy: OnFailure
+#     activeDeadlineSeconds: 45
+#     cloudSql: true
+#     dependencies:
+#       - postgreSuper
+#       - cloudSql
+#     env: {}
+#     image:
+#       repository: ""
+#       pullPolicy: Always
+#       tag: ""
+#     annotations:
+#       "helm.sh/hook": post-install
+#       "helm.sh/hook-delete-policy": hook-succeeded
+#     podAnnotations:
+#       app: dbmate
+#   dbmateUpgrade:
+#     name: dbmate-on-upgrade
+#     enabled: true
+#     backoffLimit: 2
+#     cloudSql: true
+#     restartPolicy: OnFailure
+#     activeDeadlineSeconds: 45
+#     dependencies:
+#       - postgreSuper
+#       - cloudSql
+#     env: {}
+#     image:
+#       repository: ""
+#       pullPolicy: Always
+#       tag: ""
+#     annotations:
+#       "helm.sh/hook": post-upgrade
+#       "helm.sh/hook-delete-policy": hook-succeeded
+#     podAnnotations:
+#       app: dbmate
 
 cloud:
   projectId: ""
