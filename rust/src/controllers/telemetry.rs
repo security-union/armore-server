@@ -47,7 +47,7 @@ pub fn get_public_key(
          from users_identity where username = $1
      ",
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
     let rows = client.query(&statement, &[&username]);
     return match rows.unwrap().first() {
         Option::Some(row) => Ok(row.get("public_key")),
@@ -76,7 +76,7 @@ pub fn store_telemetry(
          charging_state, battery_level, is_charging)
           values ($1, $2, $3, $4, now(), $5, $6, $7, $8)",
              )
-             .map_err(APIInternalError::from_postgres_err)?;
+             .map_err(APIInternalError::from_db_err)?;
 
         let battery_state = telemetry_request
             .batteryState
@@ -100,7 +100,7 @@ pub fn store_telemetry(
                     &battery_state.isCharging.unwrap(),
                 ],
             )
-            .map_err(APIInternalError::from_postgres_err)?;
+            .map_err(APIInternalError::from_db_err)?;
         let hash_map_name = redis_hash_map_name(&telemetry.recipientUsername);
         let utc_time = Utc::now();
         let local_now = Local::now();
@@ -112,17 +112,17 @@ pub fn store_telemetry(
         let telemetry_string = serde_json::to_string(&telemetry).unwrap();
         redis
             .hset(hash_map_name, &auth_info.username, &telemetry_string)
-            .map_err(APIInternalError::from_redis_err)?;
+            .map_err(APIInternalError::from_db_err)?;
         redis
             .zadd(
                 &TELEMETRY_LAST_SEEN_SET.to_string(),
                 &auth_info.username,
                 local_now.timestamp(),
             )
-            .map_err(APIInternalError::from_redis_err)?;
+            .map_err(APIInternalError::from_db_err)?;
         redis
             .hdel(&NANNY_RETRY_HASH_MAP.to_string(), &auth_info.username)
-            .map_err(APIInternalError::from_redis_err)?;
+            .map_err(APIInternalError::from_db_err)?;
     }
     Ok("Ok".to_string())
 }
@@ -139,10 +139,10 @@ pub fn get_follower_keys(
      WHERE users_followers.username = $1
      ",
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
     let result = client
         .query(&statement, &[&username])
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
     let followers_keys = result
         .iter()
         .map(|row| {
@@ -160,10 +160,10 @@ pub fn get_user_state(
 ) -> Result<Option<UserState>, APIInternalError> {
     let statement = client
         .prepare("SELECT self_perception FROM users_state WHERE username = $1")
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
     let user_state: Option<UserState> = client
         .query(&statement, &[&username])
-        .map_err(APIInternalError::from_postgres_err)?
+        .map_err(APIInternalError::from_db_err)?
         .iter()
         .fold(None, |_acc, row| {
             let user_state: Option<UserState> = row.get("self_perception");
@@ -206,7 +206,7 @@ pub fn get_followers(
              ",
             &[&username],
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
 
     let followers_map = followers
         .iter()
@@ -248,7 +248,7 @@ pub fn get_connections(
 
     Ok(TelemetryResponse {
         followers: rows,
-        following: getFollowingLastLocation(username, client, redis).map_err(APIInternalError::from_postgres_err)?,
+        following: getFollowingLastLocation(username, client, redis).map_err(APIInternalError::from_db_err)?,
     })
 }
 
@@ -363,7 +363,7 @@ pub fn create_command(
          (username, recipient_username, request_timestamp, correlation_id, type, state)
           values ($1, $2, now(), $3, $4, $5)",
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
 
     let _rows = client
         .query(
@@ -376,7 +376,7 @@ pub fn create_command(
                 &CommandState::Created,
             ],
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
 
     Ok(correlation_id.to_string())
 }
@@ -406,11 +406,11 @@ pub fn username_has_follower(
             "select * from users_followers where
          username = $1 and username_follower = $2",
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
 
     let rows = client
         .query(&statement, &[&username, &username_follower])
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
     Ok(!rows.is_empty())
 }
 

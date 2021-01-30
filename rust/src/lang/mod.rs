@@ -22,14 +22,16 @@ pub enum TranslationIds {
     PushNotificationInvitationAcceptedBody,
     UserAlreadyInEmergency,
     UserAlreadyInNormal,
+    UserNotInEmergency,
     NormalModePushNotificationBody,
     EmergencyModePushNotificationBody,
-    PushNotificationActionView
+    PushNotificationActionView,
+    InvalidHistoricalLocationStartTime
 }
 
 
-pub fn get_dictionary(language: String) -> &'static HashMap<TranslationIds, &'static str> {
-    match language.as_str() {
+pub fn get_glossary(language: &str) -> &'static HashMap<TranslationIds, &'static str> {
+    match language {
         "es" => (&SPANISH as &HashMap<TranslationIds, &'static str>),
         _ => (&ENGLISH as &HashMap<TranslationIds, &'static str>),
     }
