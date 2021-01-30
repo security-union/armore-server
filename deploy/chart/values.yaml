@@ -4,8 +4,6 @@ nameOverride: ""
 fullnameOverride: ""
 
 tags:
-  certManager: false
-  nginx: false
   cloudSql: true
 
 deployments:
@@ -371,6 +369,7 @@ ingress:
   enabled: true
   annotations:
     kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt
     # nginx.ingress.kubernetes.io/proxy-body-size: 8m
     # nginx.ingress.kubernetes.io/ssl-redirect: true
     # nginx.ingress.kubernetes.io/limit-connections: 20
@@ -420,63 +419,49 @@ ingress:
         - ws.armore.dev
         - rabbitmq.armore.dev
 
-ingress-nginx:
-  scope:
-    enabled: true
-
-issuer:
-  name: letsencrypt
-  acme:
-    email: ""
-    server: https://acme-v02.api.letsencrypt.org/directory
-    secretName: barnacles
-
+# This is not ready for primetime
+# https://securityunion.atlassian.net/browse/ARM-195
 # jobs:
-# TODO: this is not ready for primetime
-# dbmate runs before installs and upgrades
-# it connects to the database and runs all migrations
-  # dbmateInstall:
-  #   name: dbmate-on-install
-  #   enabled: true
-  #   backoffLimit: 2
-  #   restartPolicy: Never
-  #   cloudSql: true
-  #   dependencies:
-  #     - postgreSuper
-  #     - cloudSql
-  #   env: {}
-  #   image:
-  #     repository: ""
-  #     pullPolicy: Always
-  #     tag: ""
-  #   annotations:
-  #     "helm.sh/hook": post-install
-  #     "helm.sh/hook-delete-policy": hook-succeeded
-  #   podAnnotations:
-  #     app: dbmate
-  #   command: ["/app/startup.sh"]
-  #   args: []
-  # dbmateUpgrade:
-  #   name: dbmate-on-upgrade
-  #   enabled: true
-  #   backoffLimit: 2
-  #   cloudSql: true
-  #   restartPolicy: Never
-  #   dependencies:
-  #     - postgreSuper
-  #     - cloudSql
-  #   env: {}
-  #   image:
-  #     repository: ""
-  #     pullPolicy: Always
-  #     tag: ""
-  #   annotations:
-  #     "helm.sh/hook": post-upgrade
-  #     "helm.sh/hook-delete-policy": hook-succeeded
-  #   podAnnotations:
-  #     app: dbmate
-  #   command: ["/app/startup.sh"]
-  #   args: []
+#   dbmateInstall:
+#     name: dbmate-on-install
+#     enabled: true
+#     backoffLimit: 2
+#     restartPolicy: OnFailure
+#     activeDeadlineSeconds: 45
+#     cloudSql: true
+#     dependencies:
+#       - postgreSuper
+#       - cloudSql
+#     env: {}
+#     image:
+#       repository: ""
+#       pullPolicy: Always
+#       tag: ""
+#     annotations:
+#       "helm.sh/hook": post-install
+#       "helm.sh/hook-delete-policy": hook-succeeded
+#     podAnnotations:
+#       app: dbmate
+#   dbmateUpgrade:
+#     name: dbmate-on-upgrade
+#     enabled: true
+#     backoffLimit: 2
+#     cloudSql: true
+#     restartPolicy: OnFailure
+#     activeDeadlineSeconds: 45
+#     dependencies:
+#       - postgreSuper
+#       - cloudSql
+#     env: {}
+#     image:
+#       repository: ""
+#       pullPolicy: Always
+#       tag: ""
+#     annotations:
+#       "helm.sh/hook": post-upgrade
+#       "helm.sh/hook-delete-policy": hook-succeeded
+#     podAnnotations:
+#       app: dbmate
 
 cloud:
   projectId: ""

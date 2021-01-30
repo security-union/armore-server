@@ -54,6 +54,9 @@ spec:
   {{- with .backoffLimit }}
   backoffLimit: {{ . }}
   {{- end }}
+  {{- with .activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ . }}
+  {{- end }}
 ---
 {{- end }}
 {{- end }}
