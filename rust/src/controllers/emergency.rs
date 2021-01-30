@@ -1,16 +1,13 @@
 use crate::model::{
     auth::AuthInfo,
     emergency::UserState,
-    responses::{APIJsonResponse, APIResponse},
     telemetry::{DateTimeRange, Location},
-    APIResult, Message,
 };
 use crate::server::validators::{
     datetime::assert_valid_location_historical_start, emergency_user::assert_emergency_user,
     friends::assert_not_friends,
 };
 use log::error;
-use rocket_contrib::json::Json;
 
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
@@ -39,18 +36,11 @@ pub fn get_historical_location(
     auth_info: &AuthInfo,
     emergency_user: &String,
     range: &DateTimeRange,
-) -> APIResult<Vec<Location>> {
+) -> Result<Vec<Location>, APIInternalError> {
     assert_valid_location_historical_start(&range.start_time)
         .and_then(|_| assert_not_friends(conn, &auth_info.username, &emergency_user))
         .and_then(|_| assert_emergency_user(conn, &emergency_user))
         .and_then(|_| get_historical_telemetry(conn, &auth_info.username, &emergency_user, &range))
-        .and_then(|historic| {
-            Ok(Json(APIResponse {
-                success: true,
-                result: Some(historic),
-            }))
-        })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
 /// Set user state to Normal or Emergency.
@@ -60,27 +50,20 @@ pub fn get_historical_location(
 pub fn update_user_state(
     conn: &mut PostgresConnection,
     channel: &Channel,
-    auth_info: &AuthInfo,
+    username: &String,
     state: &UserState,
-) -> APIResult<Message<UserState>> {
-    update_state(conn, &auth_info.username, state)
-        .and_then(|_| {
-            send_emergency_notifications(conn, &channel, &auth_info.username, state)
-                .map_err(|err| {
-                    error!(
-                        "{}",
-                        err.engineering_error.unwrap_or("Unknown Error".to_string())
-                    );
-                })
-                .ok();
-            Ok(Json(APIResponse {
-                success: true,
-                result: Some(Message {
-                    message: state.clone(),
-                }),
-            }))
-        })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+) -> Result<(), APIInternalError> {
+    update_state(conn, username, state).and_then(|_| {
+        send_emergency_notifications(conn, &channel, username, state)
+            .map_err(|err| {
+                error!(
+                    "{}",
+                    err.engineering_error.unwrap_or("Unknown Error".to_string())
+                );
+            })
+            .ok();
+        Ok(())
+    })
 }
 
 pub fn update_state(

@@ -22,6 +22,7 @@ pub fn bind_notifications_queue(channel: &Channel) -> Queue {
     queue
         .bind(&exchange, NOTIFICATIONS_ROUTING_KEY, FieldTable::default())
         .unwrap();
+    queue.purge_nowait().unwrap();
     queue
 }
 
