@@ -37,7 +37,8 @@ spec:
     {{- if eq $namespace "default"  }}
     - host: {{ .host | quote }}
     {{- else }}
-    - host: {{ printf "%s.%s" $namespace .host | quote }}
+    {{- $host := splitn "." 2 .host }}
+    - host: {{ printf "%s.%s.%s" $host._0 $namespace $host._1 | quote }}
     {{- end }}
       http:
         paths:

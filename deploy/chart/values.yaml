@@ -418,6 +418,8 @@ ingress:
         - ws.armore.dev
         - rabbitmq.armore.dev
 
+# This is not ready for primetime
+# https://securityunion.atlassian.net/browse/ARM-195
 # jobs:
 #   dbmateInstall:
 #     name: dbmate-on-install
