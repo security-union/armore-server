@@ -15,7 +15,7 @@
  */
 
 module "gke" {
-  source                            = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine//modules/private-cluster?ref=v12.3.0"
+  source                            = "terraform-google-modules/kubernetes-engine/google"
   project_id                        = var.project_id
   name                              = "${var.name}-cluster"
   region                            = var.region
@@ -25,16 +25,10 @@ module "gke" {
   ip_range_pods                     = module.gke-network.subnets_secondary_ranges[0].*.range_name[0]
   ip_range_services                 = module.gke-network.subnets_secondary_ranges[0].*.range_name[1]
   grant_registry_access             = true
-  enable_private_endpoint           = false
-  enable_private_nodes              = true
-  master_ipv4_cidr_block            = "172.16.0.16/28"
-  network_policy                    = true
   horizontal_pod_autoscaling        = true
   service_account                   = "create"
   remove_default_node_pool          = true
   disable_legacy_metadata_endpoints = true
-
-  master_authorized_networks = []
 
   node_pools = [
     {
