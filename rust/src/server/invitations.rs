@@ -1,8 +1,9 @@
-use crate::controllers::invitations::{
-    accept_invitation, assert_not_friends, assert_valid_invitation, create_invitation,
-    get_invitation_creator, notify_accepted, reject_invitation, remove_friends,
-};
 use super::middleware::{catchers::catchers, cors::options};
+use super::validators::{friends::assert_not_friends, invitations::assert_valid_invitation};
+use crate::controllers::invitations::{
+    accept_invitation, create_invitation, get_invitation_creator, notify_accepted,
+    reject_invitation, remove_friends,
+};
 use crate::{
     db::{get_connection, get_pool},
     messaging::{get_rabbitmq_uri, unlock_channel},
@@ -44,7 +45,7 @@ fn create(
                 }))
             })
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
 #[post("/<id>/reject")]
@@ -67,7 +68,7 @@ fn reject(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
                     }))
                 })
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
 #[post("/<id>/accept")]
@@ -97,7 +98,7 @@ fn accept(
                     }))
                 })
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
 #[delete("/remove/<username>")]
@@ -119,13 +120,13 @@ fn remove_friend(
                     }))
                 })
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
 #[get("/<id>/creator")]
 pub fn get_creator(
     id: String,
-    _auth_info: AuthInfo,
+    auth_info: AuthInfo,
     state: State<Storage>,
 ) -> APIResult<JsonValue> {
     get_connection(state)
@@ -137,7 +138,24 @@ pub fn get_creator(
                 }))
             })
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, _auth_info.language))
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+}
+
+#[get("/public/<id>/creator")]
+pub fn get_creator_public(
+    id: String,
+    state: State<Storage>,
+) -> APIResult<JsonValue> {
+    get_connection(state)
+        .and_then(|mut conn| {
+            get_invitation_creator(&mut conn, &id).and_then(|data| {
+                Ok(Json(APIResponse {
+                    success: true,
+                    result: Some(data),
+                }))
+            })
+        })
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &"en".to_string()))
 }
 
 pub fn rocket() -> Rocket {
@@ -147,7 +165,7 @@ pub fn rocket() -> Rocket {
     rocket::ignite()
         .mount(
             "/v1/invitations",
-            routes![create, accept, reject, remove_friend, get_creator],
+            routes![create, accept, reject, remove_friend, get_creator, get_creator_public],
         )
         .register(catchers())
         .attach(options())

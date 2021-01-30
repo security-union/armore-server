@@ -52,10 +52,10 @@ pub fn get_device_by_id(
                  WHERE device_id = $1
                  ",
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
     match client
         .query(&latest_device_settings_statement, &[&device_id])
-        .map_err(APIInternalError::from_postgres_err)?
+        .map_err(APIInternalError::from_db_err)?
         .iter()
         .fold(None, |_acc, row| row_to_device(row))
     {
@@ -88,7 +88,7 @@ pub fn update_device_settings(
              RETURNING *
          ",
         )
-        .map_err(APIInternalError::from_postgres_err)?;
+        .map_err(APIInternalError::from_db_err)?;
 
     let new_device = client
         .query(
@@ -106,7 +106,7 @@ pub fn update_device_settings(
                 &device_update.osVersion,
             ],
         )
-        .map_err(APIInternalError::from_postgres_err)?
+        .map_err(APIInternalError::from_db_err)?
         .iter()
         .fold(None, |_acc, row| row_to_device(row));
 

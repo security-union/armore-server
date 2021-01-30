@@ -25,9 +25,9 @@ pub struct APIJsonResponse {
 impl APIJsonResponse {
     pub fn api_error_with_internal_error(
         internal_error: APIInternalError,
-        lang: String,
+        lang: &str,
     ) -> APIJsonResponse {
-        let translated_error = lang::get_dictionary(lang).get(&internal_error.msg);
+        let translated_error = lang::get_glossary(lang).get(&internal_error.msg);
 
         APIJsonResponse::api_error(
             translated_error.unwrap_or(&"Unknown error").to_string(),
@@ -88,8 +88,6 @@ pub mod Errors {
     use crate::lang::TranslationIds;
     use crate::model::emergency::UserState;
     use serde::{Deserialize, Serialize};
-    use redis::RedisError;
-    use postgres::error::Error;
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
     #[allow(non_snake_case)]
@@ -105,24 +103,16 @@ pub mod Errors {
     }
 
     impl APIInternalError {
-        pub fn from_postgres_err(w: Error) -> APIInternalError {
-            error!("postgresError error {}", w.to_string());
-            APIInternalError {
-                msg: TranslationIds::DatabaseError,
-                engineering_error: Some(w.to_string()),
-            }
-        }
-
-        pub fn from_redis_err(e: RedisError) -> APIInternalError {
-            error!("redis error {}", e.to_string());
-            APIInternalError {
+        pub fn from_db_err<T: ToString>(e: T) -> Self {
+            error!("Redis/Postgres error: {}", e.to_string());
+            Self {
                 msg: TranslationIds::DatabaseError,
                 engineering_error: Some(e.to_string()),
             }
         }
 
-        pub fn user_state_error(user_state: UserState) -> APIInternalError {
-            APIInternalError {
+        pub fn user_state_error(user_state: UserState) -> Self {
+            Self {
                 msg: match user_state {
                     UserState::Normal => TranslationIds::UserAlreadyInNormal,
                     UserState::Emergency => TranslationIds::UserAlreadyInEmergency,

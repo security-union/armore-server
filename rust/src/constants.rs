@@ -10,6 +10,8 @@ pub const CS_PROFILE_IMAGE_PATH: &str = "https://storage.cloud.google.com/rescue
 
 pub const WEB_URL: &str = "https://armore.dev";
 
+pub const INV_ENDPOINT: &str = "https://armore.dev/invitations";
+
 pub const ASIMOV_LIVES: &str = "asimovlives";
 
 pub static DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S.000Z";

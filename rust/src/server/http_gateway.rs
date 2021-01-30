@@ -45,7 +45,7 @@ fn post_telemetry(
         .expect("Unable to get redis connection from state.");
 
     store_telemetry(&telemetry_request, &auth_info, &mut client, &mut redis).map_err(|err| {
-        APIJsonResponse::api_error_with_internal_error(err, auth_info.language.to_string())
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
     })?;
 
     // This request was force pushed due to a ForcePush Request, store the result.
@@ -64,11 +64,11 @@ fn post_telemetry(
     // TODO: send message to geofence service.
     let all_friends =
         get_connections(&auth_info.username, &mut client, &mut redis).map_err(|err| {
-            APIJsonResponse::api_error_with_internal_error(err, auth_info.language.to_string())
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
         })?;
 
     let user_state = get_user_state(&auth_info.username, &mut client).map_err(|err| {
-        APIJsonResponse::api_error_with_internal_error(err, auth_info.language.to_string())
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
     })?;
 
     match (user_state, Connection::insecure_open(&get_rabbitmq_uri())) {
@@ -113,7 +113,7 @@ fn get_keys(
         .get()
         .expect("Unable to get database connection from state.");
     let keys = get_follower_keys(&auth_info.username, &mut client)
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, auth_info.language))?;
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
     Ok(Json(APIResponse {
         success: true,
         result: keys,
@@ -136,7 +136,7 @@ fn force_refresh_telemetry(
     let username_has_follower =
         username_has_follower(&mut client, &recipient_username, &auth_info.username).map_err(
             |err| {
-                APIJsonResponse::api_error_with_internal_error(err, auth_info.language.to_string())
+                APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
             },
         )?;
     if !username_has_follower {
@@ -151,7 +151,7 @@ fn force_refresh_telemetry(
     }
 
     force_refresh_telemetry_internal(&mut client, recipient_username, &auth_info).map_err(|err| {
-        APIJsonResponse::api_error_with_internal_error(err, auth_info.language.to_string())
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
     })
 }
 
@@ -173,7 +173,7 @@ fn update_device(
 
     let mut device_update =
         get_device_by_id(&auth_info.deviceId[..], &mut client).map_err(|error| {
-            APIJsonResponse::api_error_with_internal_error(error, (&auth_info.language).to_string())
+            APIJsonResponse::api_error_with_internal_error(error, &auth_info.language)
         })?;
 
     device_update.locationPermissionState = device_update_request.0.locationPermissionState;
@@ -191,7 +191,7 @@ fn update_device(
                 result: DeviceUpdateResponse { updated: u },
             }))
         })
-        .map_err(|error| APIJsonResponse::api_error_with_internal_error(error, auth_info.language))
+        .map_err(|error| APIJsonResponse::api_error_with_internal_error(error, &auth_info.language))
 }
 
 pub fn rocket() -> Rocket {
