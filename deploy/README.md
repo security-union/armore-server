@@ -53,3 +53,9 @@ Create a cluster issuer
 kubectl apply -f cluster-issuer.yaml -n cert-manager
 ```
 
+### Deploy Armore
+
+```
+kubectl create namespace dev
+helm install dev ./chart -f chart/secrets/dev.yaml -n dev
+```
