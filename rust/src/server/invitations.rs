@@ -141,6 +141,23 @@ pub fn get_creator(
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
+#[get("/public/<id>/creator")]
+pub fn get_creator_public(
+    id: String,
+    state: State<Storage>,
+) -> APIResult<JsonValue> {
+    get_connection(state)
+        .and_then(|mut conn| {
+            get_invitation_creator(&mut conn, &id).and_then(|data| {
+                Ok(Json(APIResponse {
+                    success: true,
+                    result: Some(data),
+                }))
+            })
+        })
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &"en".to_string()))
+}
+
 pub fn rocket() -> Rocket {
     let database = get_pool();
     let rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
@@ -148,7 +165,7 @@ pub fn rocket() -> Rocket {
     rocket::ignite()
         .mount(
             "/v1/invitations",
-            routes![create, accept, reject, remove_friend, get_creator],
+            routes![create, accept, reject, remove_friend, get_creator, get_creator_public],
         )
         .register(catchers())
         .attach(options())
