@@ -26,7 +26,8 @@ spec:
         {{- if eq $namespace "default"  }}
         - {{ . | quote }}
         {{- else }}
-        - {{ printf "%s.%s" $namespace . | quote }}
+        {{- $host := splitn "." 2 . }}
+        - {{ printf "%s.%s.%s" $host._0 $namespace $host._1 | quote }}
         {{- end }}
         {{- end }}
       secretName: {{ printf "%s-%s" $fullName .secretName }}
