@@ -35,7 +35,7 @@ jobs:
       - name: Download dbmate
         run: curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v1.10.0/dbmate-linux-amd64 && chmod +x /usr/local/bin/dbmate
       - name: Set rust to nightly channel
-        run: rustup default nightly
+        run: rustup default nightly-2020-05-18
       - name: Test rust-server
         env:
           RABBITMQ_USER: rabbitmq
