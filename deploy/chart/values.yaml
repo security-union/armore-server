@@ -148,6 +148,42 @@ deployments:
         memory: 30M
     replicas: 1
     cloudSql: true
+  emergencyV1:
+    name: emergency-v1
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    podAnnotations:
+      app: emergency_v1
+    command: ["./emergency"]
+    args: []
+    env:
+      - name: ROCKET_ENV
+        value: "prod"
+      - name: ROCKET_PORT
+        value: "8002"
+      - name: RUST_LOG
+        value: "info"
+    ports:
+      - name: http
+        containerPort: 8002
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
+    replicas: 1
+    cloudSql: true
   notificationsServer:
     name: notifications-server
     enabled: true
@@ -339,6 +375,11 @@ services:
       - port: 8001
         targetPort: 8001
         protocol: TCP
+  - name: emergency-v1
+    ports:
+      - port: 8002
+        targetPort: 8002
+        protocol: TCP
   - name: notifications-server
     ports:
       - port: 9999
@@ -395,6 +436,11 @@ ingress:
       paths: [/v1/invitations]
       pathType: Prefix
       servicePort: 8001
+    - name: emergency-v1
+      host: api.armore.dev
+      paths: [/v1/emergency]
+      pathType: Prefix
+      servicePort: 8002
     - name: notifications-server
       host: notifications.armore.dev
       paths: [/]
