@@ -6,7 +6,7 @@ use amiquip::{
     Queue, QueueDeclareOptions,
 };
 
-use lib::publish_websocket_messages::{NOTIFICATIONS_EXCHANGE, NOTIFICATIONS_ROUTING_KEY};
+use lib::messaging::{NOTIFICATIONS_EXCHANGE, NOTIFICATIONS_ROUTING_KEY};
 
 pub fn bind_notifications_queue(channel: &Channel) -> Queue {
     let queue = channel
@@ -22,6 +22,7 @@ pub fn bind_notifications_queue(channel: &Channel) -> Queue {
     queue
         .bind(&exchange, NOTIFICATIONS_ROUTING_KEY, FieldTable::default())
         .unwrap();
+    queue.purge_nowait().unwrap();
     queue
 }
 

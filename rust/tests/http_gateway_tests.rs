@@ -4,20 +4,23 @@ use rocket::http::Status;
 use rocket::local::Client;
 use serde_json::{json, Value};
 
-use lib::auth::ASIMOV_LIVES;
+use lib::constants::ASIMOV_LIVES;
 use lib::model::{
-    APIResponse, AccessType, BatteryState, ChargingState, Connection, Telemetry, TelemetryResponse,
-    UserDetails, UserState,
+    devices::{BatteryState, ChargingState},
+    emergency::{AccessType, UserState},
+    responses::{APIResponse, TelemetryResponse},
+    telemetry::{Connection, Telemetry},
+    UserDetails,
 };
 
 mod common;
 use common::{
     auth::{create_token, MOCK_PUBLIC_KEY, MOCK_PUBLIC_KEY_2},
     db::insert_mock_public_key,
+    dbmate::dbmate_rebuild,
     redis::flush_redis,
-    dbmate::dbmate_rebuild
 };
-use lib::http_gateway::handlers::rocket;
+use lib::server::http_gateway::rocket;
 
 #[test]
 fn test_get_follower_keys() {
@@ -398,8 +401,10 @@ fn test_post_telemetry_invalid_recipients() {
     );
     let mut response = request.dispatch();
     assert_eq!(response.status(), Status::Ok);
-    assert_eq!(response.body_string(),
-               Some("{\"result\":{\"engineeringError\":\"db error: ERROR: insert or update on table \\\"device_telemetry\\\" violates foreign key constraint \\\"device_telemetry_recipient_username_fkey\\\"\\nDETAIL: Key (recipient_username)=(sdfasdf) is not present in table \\\"users\\\".\",\"message\":\"Database error, an engineer will be assigned to this issue\"},\"success\":false}".to_string()));
+    assert_eq!(
+        response.body_string(),
+        Some(String::from("{\"success\":true,\"result\":null}"))
+    );
 }
 
 #[test]

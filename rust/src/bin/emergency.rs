@@ -1,4 +1,4 @@
-use lib::emergency::handlers::rocket;
+use lib::server::emergency::rocket;
 
 fn main() {
     env_logger::init();

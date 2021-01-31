@@ -1,5 +1,5 @@
 use chrono::DateTime;
-use lib::{db::get_pool, model::InvitationState};
+use lib::{db::get_pool, model::invitations::InvitationState};
 use std::time::SystemTime;
 
 pub fn insert_mock_public_key(username: &str, public_key: &str) {
@@ -48,11 +48,34 @@ pub fn insert_mock_invitation_link(
 pub fn insert_mock_friends(user1: &str, user2: &str) {
     let pool = get_pool();
     let mut client = pool.get().unwrap();
-
     client
         .query(
             "call add_friend($1, $2)",
             &[&user1.to_string(), &user2.to_string()],
+        )
+        .unwrap();
+}
+
+pub fn insert_mock_telemetry(
+    username: &str,
+    phone: &str,
+    recipient: &str,
+    datetime: chrono::NaiveDateTime,
+) {
+    let pool = get_pool();
+    let mut client = pool.get().unwrap();
+    let insert_query = "INSERT INTO device_telemetry (username, device_id, recipient_username, encrypted_location, creation_timestamp) VALUES ($1, $2, $3, $4, $5)";
+
+    client
+        .execute(
+            insert_query,
+            &[
+                &username.to_string(),
+                &phone.to_string(),
+                &recipient.to_string(),
+                &"encryptedData".to_string(),
+                &datetime,
+            ],
         )
         .unwrap();
 }

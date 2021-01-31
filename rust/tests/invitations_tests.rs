@@ -1,12 +1,12 @@
 use chrono::{Duration, Local};
-use lib::auth::ASIMOV_LIVES;
-use lib::{db::get_pool, model::InvitationState};
+use lib::constants::ASIMOV_LIVES;
+use lib::{db::get_pool, model::invitations::InvitationState};
 use regex::Regex;
 use rocket::http::{Header, Status};
 use rocket::local::Client;
 use rocket_contrib::json;
 
-use lib::invitations::handlers::rocket;
+use lib::server::invitations::rocket;
 use std::time::SystemTime;
 
 mod common;

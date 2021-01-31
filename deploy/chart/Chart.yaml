@@ -1,0 +1,9 @@
+apiVersion: v2
+name: armore
+description: A Helm chart for Armore
+
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.3

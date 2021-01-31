@@ -9,3 +9,9 @@ pub const GENERIC_EMAIL_TEMPLATE: &str = "d-f4c36d6358cd445e9a873e103c3efe05";
 pub const CS_PROFILE_IMAGE_PATH: &str = "https://storage.cloud.google.com/rescuelink_user_pictures";
 
 pub const WEB_URL: &str = "https://armore.dev";
+
+pub const INV_ENDPOINT: &str = "https://armore.dev/invitations";
+
+pub const ASIMOV_LIVES: &str = "asimovlives";
+
+pub static DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S.000Z";

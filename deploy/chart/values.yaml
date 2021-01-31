@@ -1,0 +1,515 @@
+# Default values for armore-chart.
+
+nameOverride: ""
+fullnameOverride: ""
+
+tags:
+  cloudSql: true
+
+deployments:
+  authServer: 
+    name: auth-server
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+      - slack
+    command: ["yarn"]
+    args: ["start"]
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    env:
+      - name: SERVICE_NAME
+        value: auth_server
+    podAnnotations:
+      app: auth_server
+    ports:
+      - name: http
+        containerPort: 10000
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
+    replicas: 1
+    cloudSql: true
+  httpGateway:
+    name: http-gateway
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+      - slack
+    command: ["yarn"]
+    args: ["start"]
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    env:
+      - name: SERVICE_NAME
+        value: http_gateway
+    podAnnotations:
+      app: http_gateway
+    ports:
+      - name: http
+        containerPort: 8081
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
+    replicas: 1
+    cloudSql: true
+  httpGatewayV1:
+    name: http-gateway-v1
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+      - redis
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    podAnnotations:
+      app: http_gateway_v1
+    command: ["./http_gateway"]
+    args: []
+    env:
+      - name: ROCKET_ENV
+        value: "prod"
+      - name: ROCKET_PORT
+        value: "8000"
+      - name: ROCKET_LOG
+        value: "critical"
+      - name: RUST_LOG
+        value: "info"
+    ports:
+      - name: http
+        containerPort: 8000
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
+    replicas: 1
+    cloudSql: true
+  invitationsV1:
+    name: invitations-v1
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    podAnnotations:
+      app: invitations_v1
+    command: ["./invitations"]
+    args: []
+    env:
+      - name: ROCKET_ENV
+        value: "prod"
+      - name: ROCKET_PORT
+        value: "8001"
+      - name: RUST_LOG
+        value: "info"
+    ports:
+      - name: http
+        containerPort: 8001
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
+    replicas: 1
+    cloudSql: true
+  emergencyV1:
+    name: emergency-v1
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    podAnnotations:
+      app: emergency_v1
+    command: ["./emergency"]
+    args: []
+    env:
+      - name: ROCKET_ENV
+        value: "prod"
+      - name: ROCKET_PORT
+        value: "8002"
+      - name: RUST_LOG
+        value: "info"
+    ports:
+      - name: http
+        containerPort: 8002
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
+    replicas: 1
+    cloudSql: true
+  notificationsServer:
+    name: notifications-server
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - pushNotifications
+      - rabbitMQ
+      - sendgrid
+      - twilio
+    command: ["yarn"]
+    args: ["start"]
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    env:
+      - name: SERVICE_NAME
+        value: notification_server
+    podAnnotations:
+      app: notification_server
+    ports:
+      - name: http
+        containerPort: 9999
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
+    replicas: 1
+    cloudSql: true
+  wsGateway:
+    name: ws-gateway
+    enabled: true
+    dependencies:
+      - cloudSql
+      - cloudStorage
+      - postgres
+      - rabbitMQ
+    command: ["yarn"]
+    args: ["start"]
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    env:
+      - name: SERVICE_NAME
+        value: ws_gateway
+    podAnnotations:
+      app: ws_gateway
+    ports:
+      - name: http
+        containerPort: 9080
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 75m
+        memory: 300M
+      requests:
+        cpu: 25m
+        memory: 50M
+    replicas: 1
+    cloudSql: true
+  nanny:
+    name: nanny
+    enabled: false
+    dependencies:
+      - cloudSql
+      - postgres
+      - rabbitMQ
+      - redis
+      - slack
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    podAnnotations:
+      app: nanny
+    command: ["./nanny"]
+    args: []
+    env:
+      - name: RUST_LOG
+        value: "info"
+      - name: ONLINE_THRESHOLD_MINUTES
+        value: "30"
+      - name: OFFLINE_CUT_OFF_MINUTES
+        value: "4320"
+      - name: POLL_PERIOD_SECONDS
+        value: "1800"
+      - name: SLACK_NANNY_URL
+        value: slack.com
+    ports:
+      - name: http
+        containerPort: 8000
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50M
+      requests:
+        cpu: 20m
+        memory: 30M
+    replicas: 1
+    cloudSql: true
+  rabbitmq:
+    name: rabbitmq
+    enabled: true
+    env: {}
+    dependencies:
+      - internalRabbitMQ
+    image:
+      repository: rabbitmq
+      pullPolicy: Always
+      tag: 3-management
+    podAnnotations:
+      app: rabbitmq
+    ports:
+      - name: secure
+        containerPort: 15672
+        protocol: TCP
+      - name: insecure
+        containerPort: 5672
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 200m
+        memory: 600M
+      requests:
+        cpu: 25m
+        memory: 300M
+    replicas: 1
+  redis:
+    name: redis
+    enabled: true
+    env: {}
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    podAnnotations:
+      app: redis
+    command: ["redis-server"]
+    args: ["/redis.conf"]
+    ports:
+      - name: http
+        containerPort: 6379
+        protocol: TCP
+    resources:
+      limits:
+        cpu: 50m
+        memory: 60M
+      requests:
+        cpu: 20m
+        memory: 30M
+    replicas: 1
+    cloudSql: true
+    securityContext:
+      privileged: true
+      capabilities:
+        add:
+          - SYS_ADMIN
+    lifecycle:
+      preStop:
+        exec:
+          command: ["fusermount", "-zu", "/redis-data"]
+
+services:
+  - name: auth-server
+    ports:
+      - port: 10000
+        targetPort: 10000
+        protocol: TCP
+  - name: http-gateway
+    ports:
+      - port: 8081
+        targetPort: 8081
+        protocol: TCP
+  - name: http-gateway-v1
+    ports:
+      - port: 8000
+        targetPort: 8000
+        protocol: TCP
+  - name: invitations-v1
+    ports:
+      - port: 8001
+        targetPort: 8001
+        protocol: TCP
+  - name: emergency-v1
+    ports:
+      - port: 8002
+        targetPort: 8002
+        protocol: TCP
+  - name: notifications-server
+    ports:
+      - port: 9999
+        targetPort: 9999
+        protocol: TCP
+  - name: ws-gateway
+    ports:
+      - port: 9080
+        targetPort: 9080
+        protocol: TCP
+  - name: rabbitmq
+    ports:
+      - port: 15672
+        targetPort: 15672
+        protocol: TCP
+        name: secure
+      - port: 5672
+        targetPort: 5672
+        protocol: TCP
+        name: insecure
+  - name: redis
+    ports:
+      - port: 6379
+        targetPort: 6379
+        protocol: TCP
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt
+    # nginx.ingress.kubernetes.io/proxy-body-size: 8m
+    # nginx.ingress.kubernetes.io/ssl-redirect: true
+    # nginx.ingress.kubernetes.io/limit-connections: 20
+    # nginx.ingress.kubernetes.io/limit-rpm: 120
+  hosts:
+    - name: auth-server
+      host: auth.armore.dev
+      paths: [/]
+      pathType: Prefix
+      servicePort: 10000
+    - name: http-gateway
+      host: api.armore.dev
+      paths: [/]
+      pathType: Prefix
+      servicePort: 8081
+    - name: http-gateway-v1
+      host: api.armore.dev
+      paths: [/v1/]
+      pathType: Prefix
+      servicePort: 8000
+    - name: invitations-v1
+      host: api.armore.dev
+      paths: [/v1/invitations]
+      pathType: Prefix
+      servicePort: 8001
+    - name: emergency-v1
+      host: api.armore.dev
+      paths: [/v1/emergency]
+      pathType: Prefix
+      servicePort: 8002
+    - name: notifications-server
+      host: notifications.armore.dev
+      paths: [/]
+      pathType: Prefix
+      servicePort: 9999
+    - name: ws-gateway
+      host: ws.armore.dev
+      paths: [/]
+      pathType: Prefix
+      servicePort: 9080
+    - name: rabbitmq
+      host: rabbitmq.armore.dev
+      paths: [/]
+      pathType: Prefix
+      servicePort: 15672
+  tls:
+    - secretName: barnacles
+      hosts:
+        - auth.armore.dev
+        - api.armore.dev
+        - notifications.armore.dev
+        - ws.armore.dev
+        - rabbitmq.armore.dev
+
+# This is not ready for primetime
+# https://securityunion.atlassian.net/browse/ARM-195
+# jobs:
+#   dbmateInstall:
+#     name: dbmate-on-install
+#     enabled: true
+#     backoffLimit: 2
+#     restartPolicy: OnFailure
+#     activeDeadlineSeconds: 45
+#     cloudSql: true
+#     dependencies:
+#       - postgreSuper
+#       - cloudSql
+#     env: {}
+#     image:
+#       repository: ""
+#       pullPolicy: Always
+#       tag: ""
+#     annotations:
+#       "helm.sh/hook": post-install
+#       "helm.sh/hook-delete-policy": hook-succeeded
+#     podAnnotations:
+#       app: dbmate
+#   dbmateUpgrade:
+#     name: dbmate-on-upgrade
+#     enabled: true
+#     backoffLimit: 2
+#     cloudSql: true
+#     restartPolicy: OnFailure
+#     activeDeadlineSeconds: 45
+#     dependencies:
+#       - postgreSuper
+#       - cloudSql
+#     env: {}
+#     image:
+#       repository: ""
+#       pullPolicy: Always
+#       tag: ""
+#     annotations:
+#       "helm.sh/hook": post-upgrade
+#       "helm.sh/hook-delete-policy": hook-succeeded
+#     podAnnotations:
+#       app: dbmate
+
+cloud:
+  projectId: ""
+  pictureStorageBucket: ""
+  pictureStorageType: cloud-storage
