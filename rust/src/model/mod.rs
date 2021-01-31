@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 pub mod auth;
 pub mod devices;
 pub mod emergency;
@@ -24,9 +23,9 @@ use postgres::NoTls;
 use r2d2::Pool;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
+use responses::{APIJsonResponse, APIResponse};
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
-use responses::{APIJsonResponse, APIResponse};
 
 pub type APIResult<T> = Result<Json<APIResponse<Option<T>>>, APIJsonResponse>;
 pub type PostgresPool = Pool<PostgresConnectionManager<NoTls>>;

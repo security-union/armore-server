@@ -4,23 +4,25 @@ use amiquip::Connection;
 use rocket::{Rocket, State};
 use rocket_contrib::json::Json;
 
-use super::middleware::{catchers::catchers, cors::self};
+use super::middleware::{catchers::catchers, cors};
 use crate::controllers::devices::{get_device_by_id, update_device_settings};
-use crate::db::get_pool;
 use crate::controllers::telemetry::{
     close_command, force_refresh_telemetry_internal, get_connections, get_follower_keys,
     get_user_state, store_telemetry, username_has_follower,
 };
+use crate::db::get_pool;
+use crate::messaging::{get_rabbitmq_uri, send_ws_message};
 use crate::model::{
-    responses::{APIJsonResponse, APIResponse, TelemetryResponse, CommandResponse, DeviceUpdateResponse},
-    telemetry::{CommandState, FollowerKey},
+    auth::AuthInfo,
     emergency::AccessType,
     emergency::UserState,
-    auth::AuthInfo,
     requests::{DeviceUpdateRequest, TelemetryRequest},
+    responses::{
+        APIJsonResponse, APIResponse, CommandResponse, DeviceUpdateResponse, TelemetryResponse,
+    },
+    telemetry::{CommandState, FollowerKey},
     Storage,
 };
-use crate::messaging::{get_rabbitmq_uri, send_ws_message};
 
 #[allow(unused_must_use)]
 #[post(
@@ -44,9 +46,8 @@ fn post_telemetry(
         .get_connection()
         .expect("Unable to get redis connection from state.");
 
-    store_telemetry(&telemetry_request, &auth_info, &mut client, &mut redis).map_err(|err| {
-        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
-    })?;
+    store_telemetry(&telemetry_request, &auth_info, &mut client, &mut redis)
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
 
     // This request was force pushed due to a ForcePush Request, store the result.
     if telemetry_request.correlationId.is_some() {
@@ -62,14 +63,11 @@ fn post_telemetry(
     }
 
     // TODO: send message to geofence service.
-    let all_friends =
-        get_connections(&auth_info.username, &mut client, &mut redis).map_err(|err| {
-            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
-        })?;
+    let all_friends = get_connections(&auth_info.username, &mut client, &mut redis)
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
 
-    let user_state = get_user_state(&auth_info.username, &mut client).map_err(|err| {
-        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
-    })?;
+    let user_state = get_user_state(&auth_info.username, &mut client)
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
 
     match (user_state, Connection::insecure_open(&get_rabbitmq_uri())) {
         (Some(state), Ok(mut connection)) => {
@@ -135,9 +133,7 @@ fn force_refresh_telemetry(
     // 0. Verify that username follows recipient_username
     let username_has_follower =
         username_has_follower(&mut client, &recipient_username, &auth_info.username).map_err(
-            |err| {
-                APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
-            },
+            |err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language),
         )?;
     if !username_has_follower {
         return Ok(Json(APIResponse {
@@ -150,9 +146,8 @@ fn force_refresh_telemetry(
         }));
     }
 
-    force_refresh_telemetry_internal(&mut client, recipient_username, &auth_info).map_err(|err| {
-        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
-    })
+    force_refresh_telemetry_internal(&mut client, recipient_username, &auth_info)
+        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
 
 #[allow(unused_must_use)]

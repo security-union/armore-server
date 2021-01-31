@@ -1,3 +1,11 @@
+use amiquip::Connection as RabbitConnection;
+use chrono::{Local, Utc};
+use postgres::error::Error;
+use postgres::{NoTls, Row};
+use r2d2::{Pool, PooledConnection};
+use r2d2_postgres::PostgresConnectionManager;
+use redis::Commands;
+use rocket_contrib::json::Json;
 /**
  * Copyright [2020] [Dario Alessandro Lencina Talarico]
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -10,16 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 use std::collections::HashMap;
-use amiquip::Connection as RabbitConnection;
-use chrono::{Local, Utc};
-use postgres::error::Error;
-use postgres::{NoTls, Row};
-use r2d2::{Pool, PooledConnection};
-use r2d2_postgres::PostgresConnectionManager;
-use redis::Commands;
-use rocket_contrib::json::Json;
 use uuid::Uuid;
 
 use crate::constants::{DATE_FORMAT, NANNY_RETRY_HASH_MAP, TELEMETRY_LAST_SEEN_SET};
@@ -27,7 +26,7 @@ use crate::lang::TranslationIds;
 use crate::messaging::{get_rabbitmq_uri, send_force_refresh};
 use crate::model::{
     auth::AuthInfo,
-    devices::{BatteryState, ChargingState, AppState::UNKNOWN},
+    devices::{AppState::UNKNOWN, BatteryState, ChargingState},
     emergency::{AccessType, UserState},
     requests::TelemetryRequest,
     responses::{APIResponse, CommandResponse, Errors::APIInternalError, TelemetryResponse},
@@ -248,7 +247,8 @@ pub fn get_connections(
 
     Ok(TelemetryResponse {
         followers: rows,
-        following: getFollowingLastLocation(username, client, redis).map_err(APIInternalError::from_db_err)?,
+        following: getFollowingLastLocation(username, client, redis)
+            .map_err(APIInternalError::from_db_err)?,
     })
 }
 

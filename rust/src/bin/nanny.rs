@@ -4,12 +4,12 @@ use std::thread;
 use tokio::runtime::Runtime;
 
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
-use lib::db::get_pool;
 use lib::controllers::telemetry::force_refresh_telemetry_internal;
+use lib::db::get_pool;
 use lib::messaging::slack::send_nanny_slack_message;
 use lib::model::auth::AuthInfo;
 
-use log::{debug, info, error};
+use log::{debug, error, info};
 use redis::Commands;
 /**
 Nanny is a program that has the following jobs:

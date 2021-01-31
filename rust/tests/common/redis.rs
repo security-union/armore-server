@@ -1,6 +1,6 @@
 use lib::controllers::telemetry::redis_hash_map_name;
-use std::env;
 use redis::Commands;
+use std::env;
 
 pub fn flush_redis() {
     let mut redis =

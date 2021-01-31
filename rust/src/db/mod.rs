@@ -1,3 +1,10 @@
+use super::model::{PostgresConnection, PostgresPool, Storage};
+use crate::lang::TranslationIds;
+use crate::model::responses::Errors::APIInternalError;
+use postgres::{error::Error, IsolationLevel, NoTls, Transaction};
+use r2d2::Pool;
+use r2d2_postgres::PostgresConnectionManager;
+use rocket::State;
 /**
  * Copyright [2020] [Dario Alessandro Lencina Talarico]
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,13 +18,6 @@
  * limitations under the License.
  */
 use std::env;
-use postgres::{error::Error, IsolationLevel, NoTls, Transaction};
-use r2d2::Pool;
-use r2d2_postgres::PostgresConnectionManager;
-use super::model::{PostgresConnection, PostgresPool, Storage};
-use crate::lang::TranslationIds;
-use crate::model::responses::Errors::APIInternalError;
-use rocket::State;
 
 pub fn get_database_url() -> String {
     if let Ok(url) = env::var("PG_URL") {
