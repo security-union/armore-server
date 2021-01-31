@@ -113,12 +113,12 @@ fn build_recipients_notifications(
     recipients
         .iter()
         .flat_map(|recipient| {
-            let (push_not, emails) =
+            let (push_not, email) =
                 build_emergency_notifications(conn, &sender_details, &recipient.username, state);
             push_not
                 .into_iter()
                 .map(|not| json!(not))
-                .chain(emails.into_iter().map(|m| json!(m)))
+                .chain(email.into_iter().map(|m| json!(m)))
         })
         .collect()
 }
@@ -128,15 +128,15 @@ fn build_emergency_notifications(
     sender_details: &UserDetails,
     rec_username: &String,
     state: &UserState,
-) -> (Vec<PushNotification>, Vec<Email>) {
+) -> (Vec<PushNotification>, Option<Email>) {
     get_user_details(rec_username, conn)
         .ok()
         .flatten()
-        .map_or((vec![], vec![]), |rec_details| {
+        .map_or((vec![], None), |rec_details| {
             let notifications =
                 build_emergency_notification(conn, &sender_details, &rec_details, &state);
-            let email = build_emergency_email(&sender_details, &rec_details, &state);
-            (notifications, vec![email])
+            let email = sender_details.email.clone().map(|_| build_emergency_email(&sender_details, &rec_details, &state));
+            (notifications, email)
         })
 }
 

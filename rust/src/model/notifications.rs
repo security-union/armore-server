@@ -37,7 +37,7 @@ pub struct PushNotification {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NotificationRecipient {
-    pub email: String,
+    pub email: Option<String>,
     pub username: String,
 }
 
