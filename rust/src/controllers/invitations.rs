@@ -101,12 +101,10 @@ pub fn notify_accepted(
             engineering_error: Some(w.to_string()),
         })
         .and_then(|inv_data| {
-            let channel = RabbitConnection::insecure_open(&get_rabbitmq_uri())
+            RabbitConnection::insecure_open(&get_rabbitmq_uri())
                 .and_then(|mut connection| connection.open_channel(None))
-                .unwrap();
-
-            let result = push_accepted_notification(conn, &channel, &inv_data);
-            let _channel_close = channel.close();
+                .and_then(|mut channel| push_accepted_notification(conn, &channel, &inv_data));
+            let _channel_wlose = channel.close();
             return result;
         });
 }
