@@ -48,7 +48,6 @@ pub fn insert_mock_invitation_link(
 pub fn insert_mock_friends(user1: &str, user2: &str) {
     let pool = get_pool();
     let mut client = pool.get().unwrap();
-
     client
         .query(
             "call add_friend($1, $2)",

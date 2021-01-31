@@ -75,6 +75,45 @@ fn test_report_emergency() {
 }
 
 #[test]
+fn test_report_emergency_with_null_email_user() {
+    dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
+    insert_mock_friends("dario", "coche");
+
+    let pool = get_pool();
+    let mut client = pool.get().unwrap();
+    client
+        .query(
+            "UPDATE users SET email=NULL, phone_number=72698427 WHERE username=$1",
+            &[&"coche".to_string()],
+        )
+        .unwrap();
+
+    let mut rabbit = Connection::insecure_open(&get_rabbitmq_uri()).unwrap();
+    let channel = rabbit.open_channel(None).unwrap();
+    let queue = bind_notifications_queue(&channel);
+
+    let rocket = rocket();
+    let client = Client::new(rocket).expect("valid rocket instance");
+    let token = create_token("dario", "dario_iphone").unwrap();
+    let mut request = client.post("/v1/emergency/state");
+    request.add_header(Header::new("Content-Type", "application/json"));
+    request.add_header(Header::new(ASIMOV_LIVES, token));
+    request.set_body(r#"{"new_state":"Emergency"}"#);
+    let mut response = request.dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(
+        &response.body_string().unwrap(),
+        r#"{"success":true,"result":{"message":"Emergency"}}"#
+    );
+
+    let message = consume_message(&queue);
+    assert_eq!(String::from_utf8_lossy(&message), "[{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544g\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.l.encina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"billburr\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"coche_iphone\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544f\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.lencina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"louisck\"}]");
+    queue.delete(QueueDeleteOptions::default()).unwrap();
+}
+
+#[test]
 fn test_report_emergency_on_emergency_state() {
     dbmate_rebuild();
     insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
