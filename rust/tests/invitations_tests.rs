@@ -168,7 +168,7 @@ fn test_reject_own_invitation() {
 
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(
-        r#"{"result":{"engineeringError":null,"message":"You are dealing with an invitation that you created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord."},"success":false}"#,
+        r#"{"result":{"engineeringError":null,"message":"You are using an invitation that you've created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord."},"success":false}"#,
         &response.body_string().unwrap()
     );
 }
@@ -235,7 +235,7 @@ fn test_accept_own_invitation() {
 
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(
-        r#"{"result":{"engineeringError":null,"message":"You are dealing with an invitation that you created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord."},"success":false}"#,
+        r#"{"result":{"engineeringError":null,"message":"You are using an invitation that you've created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord."},"success":false}"#,
         &response.body_string().unwrap()
     );
 }
