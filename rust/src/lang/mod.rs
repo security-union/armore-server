@@ -26,8 +26,9 @@ pub enum TranslationIds {
     NormalModePushNotificationBody,
     EmergencyModePushNotificationBody,
     PushNotificationActionView,
-    InvalidHistoricalLocationStartTime,
+    InvalidHistoricalLocationStartTime
 }
+
 
 pub fn get_glossary(language: &str) -> &'static HashMap<TranslationIds, &'static str> {
     match language {
