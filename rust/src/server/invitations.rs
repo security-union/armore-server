@@ -78,8 +78,11 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
     get_connection(state)
         .and_then(|mut conn| {
             assert_valid_invitation(&mut conn, &data)
-                .and_then(|_| accept_invitation(&mut conn, &data))
-                .and_then(|_| notify_accepted(&mut conn, &data))
+                .and_then(|_| {
+                    let result = accept_invitation(&mut conn, &data);
+                    let _notify_accepted = notify_accepted(&mut conn, &data);
+                    return result;
+                })
                 .and_then(|_| {
                     Ok(Json(APIResponse {
                         success: true,
