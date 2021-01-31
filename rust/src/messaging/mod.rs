@@ -15,14 +15,6 @@
  */
 use std::env;
 
-use crate::controllers::devices::get_subscriber_device_ids;
-use crate::lang::TranslationIds;
-use crate::model::{
-    devices::OS,
-    notifications::{NotificationData, PushNotification},
-    responses::Errors::APIInternalError,
-    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
-};
 use amiquip::{
     Channel, Connection, ExchangeDeclareOptions, ExchangeType, Publish, Result as RabbitResult,
 };
@@ -30,9 +22,19 @@ use chrono::Utc;
 use postgres::NoTls;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
+use crate::controllers::devices::get_subscriber_device_ids;
+use crate::lang::TranslationIds;
+use crate::model::{
+    responses::Errors::APIInternalError,
+    notifications::{NotificationData, PushNotification},
+    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
+    devices::OS,
+};
 
+use std::{
+    sync::{Arc, Mutex},
+};
 use rocket::State;
-use std::sync::{Arc, Mutex};
 
 use crate::constants::DATE_FORMAT;
 
