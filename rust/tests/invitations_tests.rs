@@ -151,6 +151,29 @@ fn test_reject_expired_invitation() {
 }
 
 #[test]
+fn test_reject_own_invitation() {
+    dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
+    let token = create_token("dario", "dario_iphone").unwrap();
+
+    let exp_date = (Local::now() + week()).to_rfc3339();
+    let inv_id = "XjKlQptXcAeQ";
+    insert_mock_invitation_link("dario", inv_id, &exp_date, InvitationState::CREATED, &None);
+
+    let rocket = rocket();
+    let client = Client::new(rocket).expect("valid rocket instance");
+    let mut request = client.post(format!("/v1/invitations/{}/reject", inv_id));
+    request.add_header(Header::new(ASIMOV_LIVES, token));
+    let mut response = request.dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(
+        r#"{"result":{"engineeringError":null,"message":"You are dealing with an invitation that you created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord."},"success":false}"#,
+        &response.body_string().unwrap()
+    );
+}
+
+#[test]
 fn test_access_to_invalid_invitation() {
     dbmate_rebuild();
     insert_mock_public_key("coche", MOCK_PUBLIC_KEY);
@@ -193,6 +216,30 @@ fn test_accept_invitation() {
         &response.body_string().unwrap()
     );
 }
+
+#[test]
+fn test_accept_own_invitation() {
+    dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
+    let token = create_token("dario", "dario_iphone").unwrap();
+
+    let exp_date = (Local::now() + week()).to_rfc3339();
+    let inv_id = "XjKlQptXcAeQ";
+    insert_mock_invitation_link("dario", inv_id, &exp_date, InvitationState::CREATED, &None);
+
+    let rocket = rocket();
+    let client = Client::new(rocket).expect("valid rocket instance");
+    let mut request = client.post(format!("/v1/invitations/{}/accept", inv_id));
+    request.add_header(Header::new(ASIMOV_LIVES, token));
+    let mut response = request.dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(
+        r#"{"result":{"engineeringError":null,"message":"You are dealing with an invitation that you created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord."},"success":false}"#,
+        &response.body_string().unwrap()
+    );
+}
+
 
 #[test]
 fn test_accept_accepted_invitation() {
