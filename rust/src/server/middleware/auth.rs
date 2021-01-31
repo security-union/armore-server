@@ -80,7 +80,8 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
             }
             Err(e) => {
                 error!("Error retrieving key, username: {}", &claims.username);
-                let json_error = APIJsonResponse::api_error_with_internal_error(e, "en");
+                let json_error =
+                    APIJsonResponse::api_error_with_internal_error(e, "en");
                 return Outcome::Failure((Status::Forbidden, json_error));
             }
         }

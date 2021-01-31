@@ -1,5 +1,5 @@
-use crate::lang::TranslationIds;
 use crate::model::responses::Errors::APIInternalError;
+use crate::lang::TranslationIds;
 use chrono::Duration;
 use chrono::NaiveDateTime;
 use chrono::Utc;
@@ -11,8 +11,10 @@ pub fn assert_valid_location_historical_start(
     if start_time < week_ago {
         return Err(APIInternalError {
             msg: TranslationIds::InvalidHistoricalLocationStartTime,
-            engineering_error: None,
+            engineering_error: None
         });
     }
     Ok(())
 }
+
+

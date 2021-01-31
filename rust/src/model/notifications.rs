@@ -1,6 +1,7 @@
 use rocket_contrib::json::JsonValue;
 use serde::{Deserialize, Serialize};
 
+
 #[allow(non_snake_case)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Email {
