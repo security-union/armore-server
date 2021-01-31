@@ -139,14 +139,11 @@ N8bpeY+Pfj4VDxmkudy9TGAjZltxGqX8vJYUX0DbzEP/19cyk8i3EDd3kDqXOebx
 BRN4HjTEmEsKOlX62CUYis6bHkcP1tWhZAqYcoFvh5MErKu00JuXToHZq5U=
 -----END RSA PRIVATE KEY-----\n";
 
-pub fn create_token(
-    username: &str,
-    device_id: &str,
-) -> Result<String, jsonwebtoken::errors::Error> {
+pub fn create_token(username: &str, deviceId: &str) -> Result<String, jsonwebtoken::errors::Error> {
     let exp: i64 = Utc::now().timestamp() + 10000;
     let claims = &Claims {
         username: username.to_string(),
-        deviceId: device_id.to_string(),
+        deviceId: deviceId.to_string(),
         exp,
     };
 

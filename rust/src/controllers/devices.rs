@@ -40,7 +40,7 @@ fn row_to_device(row: &Row) -> Option<Device> {
 }
 
 pub fn get_device_by_id(
-    device_id: &str,
+    deviceId: &str,
     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
 ) -> Result<Device, APIInternalError> {
     // Select the last row for this device_id
@@ -54,7 +54,7 @@ pub fn get_device_by_id(
         )
         .map_err(APIInternalError::from_db_err)?;
     match client
-        .query(&latest_device_settings_statement, &[&device_id])
+        .query(&latest_device_settings_statement, &[&deviceId])
         .map_err(APIInternalError::from_db_err)?
         .iter()
         .fold(None, |_acc, row| row_to_device(row))
@@ -139,9 +139,9 @@ pub fn get_subscriber_device_ids(
     query.map(|rows| {
         rows.into_iter()
             .map(|row| {
-                let device_id: String = row.get("device_id");
+                let deviceId: String = row.get("device_id");
                 let os: OS = row.get("os");
-                (device_id, os)
+                (deviceId, os)
             })
             .collect()
     })

@@ -68,7 +68,7 @@ pub enum CommandState {
 pub struct Location {
     pub data: String,
     pub timestamp: NaiveDateTime,
-    pub device_id: String,
+    pub deviceId: String,
 }
 
 impl Serialize for Location {
@@ -78,7 +78,7 @@ impl Serialize for Location {
     {
         let mut s = serializer.serialize_struct("Location", 3)?;
         s.serialize_field("data", &self.data)?;
-        s.serialize_field("device_id", &self.device_id)?;
+        s.serialize_field("device_id", &self.deviceId)?;
         s.serialize_field("timestamp", &self.timestamp.format(DATE_FORMAT).to_string())?;
         s.end()
     }

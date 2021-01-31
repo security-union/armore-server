@@ -240,7 +240,7 @@ fn get_historical_telemetry(
             .into_iter()
             .map(|row| Location {
                 data: row.get("encrypted_location"),
-                device_id: row.get("device_id"),
+                deviceId: row.get("device_id"),
                 timestamp: row.get("timestamp"),
             })
             .collect()

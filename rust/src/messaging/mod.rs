@@ -15,6 +15,14 @@
  */
 use std::env;
 
+use crate::controllers::devices::get_subscriber_device_ids;
+use crate::lang::TranslationIds;
+use crate::model::{
+    devices::OS,
+    notifications::{NotificationData, PushNotification},
+    responses::Errors::APIInternalError,
+    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
+};
 use amiquip::{
     Channel, Connection, ExchangeDeclareOptions, ExchangeType, Publish, Result as RabbitResult,
 };
@@ -22,19 +30,9 @@ use chrono::Utc;
 use postgres::NoTls;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
-use crate::controllers::devices::get_subscriber_device_ids;
-use crate::lang::TranslationIds;
-use crate::model::{
-    responses::Errors::APIInternalError,
-    notifications::{NotificationData, PushNotification},
-    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
-    devices::OS,
-};
 
-use std::{
-    sync::{Arc, Mutex},
-};
 use rocket::State;
+use std::sync::{Arc, Mutex};
 
 use crate::constants::DATE_FORMAT;
 
@@ -113,8 +111,8 @@ pub fn build_user_push_notifications(
     get_subscriber_device_ids(client, &data.username).map_or(vec![], |devices| {
         devices
             .into_iter()
-            .map(|(device_id, _os)| PushNotification {
-                deviceId: device_id,
+            .map(|(deviceId, _os)| PushNotification {
+                deviceId: deviceId,
                 data: json!({
                     "title": &data.title,
                     "body": &data.body
@@ -125,7 +123,7 @@ pub fn build_user_push_notifications(
 }
 
 pub fn create_force_refresh_json(
-    device_id: &String,
+    deviceId: &String,
     os: &OS,
     correlation_id: &String,
     username: &String,
@@ -148,7 +146,7 @@ pub fn create_force_refresh_json(
                  }}
                }}
             }}"#,
-            &device_id, &correlation_id, &username
+            &deviceId, &correlation_id, &username
         ),
         _ => format!(
             r#"{{
@@ -163,7 +161,7 @@ pub fn create_force_refresh_json(
                  }}
                }}
             }}"#,
-            &device_id, &correlation_id, &username
+            &deviceId, &correlation_id, &username
         ),
     }
 }
@@ -193,8 +191,8 @@ pub fn send_force_refresh(
         .map(|devices| {
             return devices
                 .into_iter()
-                .map(|(device_id, os)| {
-                    create_force_refresh_json(&device_id, &os, &correlation_id, &username)
+                .map(|(deviceId, os)| {
+                    create_force_refresh_json(&deviceId, &os, &correlation_id, &username)
                 })
                 .collect();
         })
