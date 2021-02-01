@@ -164,7 +164,7 @@ fn get_push_inv_notification(
         .unwrap_or(&"Unknow Error");
     let push_inv_body = get_glossary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedBody)
-        .unwrap_or(&"Unknow Error");
+        .unwrap_or(&"Unknown error getting translated string");
     let title = format!("{} {}", &data.recipient, push_inv_title);
     let body = format!("{} {}", &data.recipient, push_inv_body);
 
