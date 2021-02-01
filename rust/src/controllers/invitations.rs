@@ -161,7 +161,7 @@ fn get_push_inv_notification(
 ) -> JsonValue {
     let push_inv_title = get_glossary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedTitle)
-        .unwrap_or(&"Unknow Error");
+        .unwrap_or(&"Unknown error getting translated string");
     let push_inv_body = get_glossary(&data.language)
         .get(&TranslationIds::PushNotificationInvitationAcceptedBody)
         .unwrap_or(&"Unknown error getting translated string");
