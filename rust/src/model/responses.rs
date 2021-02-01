@@ -103,10 +103,27 @@ pub mod Errors {
     }
 
     impl APIInternalError {
+        pub fn log_err(&self, message: &str) {
+            error!(
+                "{}: {}",
+                message,
+                self.engineering_error
+                    .clone()
+                    .unwrap_or("unknown".to_string())
+            )
+        }
+
         pub fn from_db_err<T: ToString>(e: T) -> Self {
             error!("Redis/Postgres error: {}", e.to_string());
             Self {
                 msg: TranslationIds::DatabaseError,
+                engineering_error: Some(e.to_string()),
+            }
+        }
+
+        pub fn backend_issue<T: ToString>(e: T) -> Self {
+            Self {
+                msg: TranslationIds::BackendIssue,
                 engineering_error: Some(e.to_string()),
             }
         }

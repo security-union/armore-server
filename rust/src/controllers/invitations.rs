@@ -1,14 +1,16 @@
-use crate::constants::INV_ENDPOINT;
 use crate::db::transaction;
 use crate::lang::{get_glossary, TranslationIds};
-use crate::messaging::{build_user_push_notifications, send_notification};
+use crate::messaging::{build_user_push_notifications, get_rabbitmq_uri, send_notification};
 use crate::model::{
     invitations::{InvitationState, LinkActionData, LinkCreationData},
     notifications::{AcceptedNotificationData, NotificationData},
     responses::Errors::APIInternalError,
     PostgresConnection,
 };
-use amiquip::{Channel, Result};
+use crate::constants::INV_ENDPOINT;
+use amiquip::Connection as RabbitConnection;
+use amiquip::Result;
+
 use postgres::row::Row;
 use rocket_contrib::json::JsonValue;
 use std::time::SystemTime;
@@ -64,19 +66,16 @@ pub fn accept_invitation(
         })
         .and_then(|_| Ok(()))
     })
-    .map_err(|w| APIInternalError {
-        msg: TranslationIds::BackendIssue,
-        engineering_error: Some(w.to_string()),
-    })
+    .map_err(APIInternalError::backend_issue)
 }
 
 pub fn notify_accepted(
     conn: &mut PostgresConnection,
-    channel: &Channel,
     data: &LinkActionData,
 ) -> Result<(), APIInternalError> {
-    conn.query_one(
-        "SELECT
+    return conn
+        .query_one(
+            "SELECT
             inv.creator_username as creator,
             creator_user_details.language as lang,
             recipient_user_details.first_name as first_name
@@ -85,52 +84,33 @@ pub fn notify_accepted(
             ON inv.id = $1 AND inv.recipient_username = recipient_user_details.username
          INNER JOIN user_details creator_user_details
             ON inv.id = $1 AND inv.creator_username = creator_user_details.username",
-        &[&data.uuid],
-    )
-    .and_then(|row| {
-        Ok(AcceptedNotificationData {
-            creator: row.get("creator"),
-            language: row.get("lang"),
-            recipient: row.get("first_name"),
+            &[&data.uuid],
+        )
+        .and_then(|row| {
+            Ok(AcceptedNotificationData {
+                creator: row.get("creator"),
+                language: row.get("lang"),
+                recipient: row.get("first_name"),
+            })
         })
-    })
-    .map_err(|w| APIInternalError {
-        msg: TranslationIds::BackendIssue,
-        engineering_error: Some(w.to_string()),
-    })
-    .and_then(|inv_data| push_accepted_notification(conn, channel, &inv_data))
+        .map_err(APIInternalError::backend_issue)
+        .and_then(|inv_data| push_accepted_notification(conn, &inv_data));
 }
 
 fn push_accepted_notification(
     conn: &mut PostgresConnection,
-    channel: &Channel,
     data: &AcceptedNotificationData,
 ) -> Result<(), APIInternalError> {
-    let push_inv_title = get_glossary(&data.language)
-        .get(&TranslationIds::PushNotificationInvitationAcceptedTitle)
-        .unwrap_or(&"Unknow Error");
-    let push_inv_body = get_glossary(&data.language)
-        .get(&TranslationIds::PushNotificationInvitationAcceptedBody)
-        .unwrap_or(&"Unknow Error");
-    let title = format!("{} {}", &data.recipient, push_inv_title);
-    let body = format!("{} {}", &data.recipient, push_inv_body);
+    let notification = build_inv_accepted_notification(conn, data);
 
-    send_notification(
-        channel,
-        json!(build_user_push_notifications(
-            &NotificationData {
-                username: data.creator.clone(),
-                title,
-                body,
-            },
-            conn
-        ))
-        .to_string(),
-    )
-    .map_err(|w| APIInternalError {
-        msg: TranslationIds::BackendIssue,
-        engineering_error: Some(w.to_string()),
-    })
+    RabbitConnection::insecure_open(&get_rabbitmq_uri())
+        .and_then(|mut connection| connection.open_channel(None))
+        .and_then(|channel| {
+            let result = send_notification(&channel, notification.to_string());
+            let _ = channel.close();
+            result
+        })
+        .map_err(APIInternalError::backend_issue)
 }
 
 pub fn remove_friends(
@@ -172,4 +152,28 @@ fn get_inv_creator(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIIn
             engineering_error: None,
         })
     })
+}
+
+
+fn build_inv_accepted_notification(
+    conn: &mut PostgresConnection,
+    data: &AcceptedNotificationData,
+) -> JsonValue {
+    let push_inv_title = get_glossary(&data.language)
+        .get(&TranslationIds::PushNotificationInvitationAcceptedTitle)
+        .unwrap_or(&"Unknown error getting translated string");
+    let push_inv_body = get_glossary(&data.language)
+        .get(&TranslationIds::PushNotificationInvitationAcceptedBody)
+        .unwrap_or(&"Unknown error getting translated string");
+    let title = format!("{} {}", &data.recipient, push_inv_title);
+    let body = format!("{} {}", &data.recipient, push_inv_body);
+
+    json!(build_user_push_notifications(
+        &NotificationData {
+            username: data.creator.clone(),
+            title,
+            body,
+        },
+        conn
+    ))
 }

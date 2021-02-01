@@ -23,7 +23,6 @@ use postgres::NoTls;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
 use crate::controllers::devices::get_subscriber_device_ids;
-use crate::lang::TranslationIds;
 use crate::model::{
     responses::Errors::APIInternalError,
     notifications::{NotificationData, PushNotification},
@@ -58,10 +57,7 @@ pub fn get_rabbitmq_uri() -> String {
 
 pub fn unlock_channel(state: State<Arc<Mutex<Connection>>>) -> Result<Channel, APIInternalError> {
     let mut guard = state.lock().expect("Rabbit Connection was poisoned");
-    guard.open_channel(None).map_err(|w| APIInternalError {
-        msg: TranslationIds::BackendIssue,
-        engineering_error: Some(w.to_string()),
-    })
+    guard.open_channel(None).map_err(APIInternalError::backend_issue)
 }
 
 pub fn send_ws_message(
@@ -100,11 +96,17 @@ pub fn send_notification(channel: &Channel, value: String) -> RabbitResult<()> {
     let exchange = channel.exchange_declare(
         ExchangeType::Direct,
         NOTIFICATIONS_EXCHANGE,
-        ExchangeDeclareOptions::default(),
+        ExchangeDeclareOptions {
+            durable: false,
+            auto_delete: false,
+            internal: false,
+            arguments: Default::default(),
+        },
     )?;
     debug!("Publishing to exchange {}", exchange.name());
     exchange.publish(Publish::new(value.as_bytes(), NOTIFICATIONS_ROUTING_KEY))
 }
+
 
 pub fn build_user_push_notifications(
     data: &NotificationData,

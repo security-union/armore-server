@@ -6,7 +6,6 @@ use crate::controllers::invitations::{
 };
 use crate::{
     db::{get_connection, get_pool},
-    messaging::{get_rabbitmq_uri, unlock_channel},
     model::{
         auth::AuthInfo,
         invitations::{LinkActionData, LinkCreationData},
@@ -15,10 +14,8 @@ use crate::{
         APIResult, Message, Storage,
     },
 };
-use amiquip::Connection as RabbitConnection;
 use rocket::{Rocket, State};
 use rocket_contrib::json::{Json, JsonValue};
-use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
 /// Create a new invitation link from post request
@@ -72,23 +69,21 @@ fn reject(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
 }
 
 #[post("/<id>/accept")]
-fn accept(
-    id: String,
-    auth_info: AuthInfo,
-    state: State<Storage>,
-    rabbit: State<Arc<Mutex<RabbitConnection>>>,
-) -> APIResult<Message<String>> {
+fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<Message<String>> {
     let data = LinkActionData {
         uuid: id.clone(),
         username: auth_info.username.clone(),
     };
 
     get_connection(state)
-        .and_then(|conn| unlock_channel(rabbit).map(|channel| (conn, channel)))
-        .and_then(|(mut conn, channel)| {
+        .and_then(|mut conn| {
             assert_valid_invitation(&mut conn, &data)
                 .and_then(|_| accept_invitation(&mut conn, &data))
-                .and_then(|_| notify_accepted(&mut conn, &channel, &data))
+                .and_then(|_| {
+                    let _ = notify_accepted(&mut conn, &data)
+                        .map_err(|w| w.log_err("Error sending notification"));
+                    Ok(())
+                })
                 .and_then(|_| {
                     Ok(Json(APIResponse {
                         success: true,
@@ -124,11 +119,7 @@ fn remove_friend(
 }
 
 #[get("/<id>/creator")]
-pub fn get_creator(
-    id: String,
-    auth_info: AuthInfo,
-    state: State<Storage>,
-) -> APIResult<JsonValue> {
+pub fn get_creator(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<JsonValue> {
     get_connection(state)
         .and_then(|mut conn| {
             get_invitation_creator(&mut conn, &id).and_then(|data| {
@@ -142,10 +133,7 @@ pub fn get_creator(
 }
 
 #[get("/public/<id>/creator")]
-pub fn get_creator_public(
-    id: String,
-    state: State<Storage>,
-) -> APIResult<JsonValue> {
+pub fn get_creator_public(id: String, state: State<Storage>) -> APIResult<JsonValue> {
     get_connection(state)
         .and_then(|mut conn| {
             get_invitation_creator(&mut conn, &id).and_then(|data| {
@@ -160,12 +148,17 @@ pub fn get_creator_public(
 
 pub fn rocket() -> Rocket {
     let database = get_pool();
-    let rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
-        .expect("Error getting rabbitMq Connection");
     rocket::ignite()
         .mount(
             "/v1/invitations",
-            routes![create, accept, reject, remove_friend, get_creator, get_creator_public],
+            routes![
+                create,
+                accept,
+                reject,
+                remove_friend,
+                get_creator,
+                get_creator_public
+            ],
         )
         .register(catchers())
         .attach(options())
@@ -173,5 +166,4 @@ pub fn rocket() -> Rocket {
             redis: None,
             database,
         })
-        .manage(Arc::new(Mutex::new(rabbit_conn)))
 }
