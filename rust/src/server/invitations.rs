@@ -80,10 +80,8 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
             assert_valid_invitation(&mut conn, &data)
                 .and_then(|_| accept_invitation(&mut conn, &data))
                 .and_then(|_| {
-                    notify_accepted(&mut conn, &data).err()
-                        .map(|error| 
-                             error!("error sending notification: {}", 
-                                    error.engineering_error.unwrap_or("unknown".to_string()))); 
+                    let _ = notify_accepted(&mut conn, &data)
+                        .map_err(|w| w.log_err("Error sending notification"));
                     Ok(())
                 })
                 .and_then(|_| {
