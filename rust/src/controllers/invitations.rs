@@ -1,15 +1,15 @@
 use crate::constants::INV_ENDPOINT;
 use crate::db::transaction;
 use crate::lang::{get_glossary, TranslationIds};
-use crate::messaging::{build_user_push_notifications, get_rabbitmq_uri, send_notification};
+use crate::messaging::{get_rabbitmq_uri, build_user_push_notifications, send_notification};
 use crate::model::{
     invitations::{InvitationState, LinkActionData, LinkCreationData},
     notifications::{AcceptedNotificationData, NotificationData},
     responses::Errors::APIInternalError,
     PostgresConnection,
 };
-use amiquip::Connection as RabbitConnection;
 use amiquip::{Channel, Result};
+use amiquip::Connection as RabbitConnection;
 
 use postgres::row::Row;
 use rocket_contrib::json::JsonValue;
@@ -76,9 +76,8 @@ pub fn notify_accepted(
     conn: &mut PostgresConnection,
     data: &LinkActionData,
 ) -> Result<(), APIInternalError> {
-    return conn
-        .query_one(
-            "SELECT
+    return conn.query_one(
+        "SELECT
             inv.creator_username as creator,
             creator_user_details.language as lang,
             recipient_user_details.first_name as first_name
@@ -87,26 +86,35 @@ pub fn notify_accepted(
             ON inv.id = $1 AND inv.recipient_username = recipient_user_details.username
          INNER JOIN user_details creator_user_details
             ON inv.id = $1 AND inv.creator_username = creator_user_details.username",
-            &[&data.uuid],
-        )
-        .and_then(|row| {
-            Ok(AcceptedNotificationData {
-                creator: row.get("creator"),
-                language: row.get("lang"),
-                recipient: row.get("first_name"),
-            })
+        &[&data.uuid],
+    )
+    .and_then(|row| {
+        Ok(AcceptedNotificationData {
+            creator: row.get("creator"),
+            language: row.get("lang"),
+            recipient: row.get("first_name"),
         })
-        .map_err(|w| APIInternalError {
-            msg: TranslationIds::BackendIssue,
-            engineering_error: Some(w.to_string()),
-        })
-        .and_then(|inv_data| {
-            RabbitConnection::insecure_open(&get_rabbitmq_uri())
-                .and_then(|mut connection| connection.open_channel(None))
-                .and_then(|mut channel| push_accepted_notification(conn, &channel, &inv_data));
-            let _channel_wlose = channel.close();
+    })
+    .map_err(|w| APIInternalError {
+        msg: TranslationIds::BackendIssue,
+        engineering_error: Some(w.to_string()),
+    })
+    .and_then(|inv_data| {
+        let channel_result = RabbitConnection::insecure_open(&get_rabbitmq_uri())
+        .and_then(|mut connection| connection.open_channel(None));
+          
+        match channel_result {
+          Ok(channel) => {
+            let result = push_accepted_notification(conn, &channel, &inv_data);
+            let _channel_close = channel.close();
             return result;
-        });
+          }
+          Err(w) => return Err(APIInternalError {
+              msg: TranslationIds::BackendIssue,
+              engineering_error: Some(w.to_string())
+          })
+        } 
+    }); 
 }
 
 fn push_accepted_notification(
