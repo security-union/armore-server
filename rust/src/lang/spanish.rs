@@ -24,6 +24,7 @@ lazy_static! {
         (TranslationIds::EmergencyModePushNotificationBody, "está en una EMERGENCIA! Por favor CONFIRME que están bien!!"),
         (TranslationIds::NormalModePushNotificationBody, "ya no está en una emergencia."),
         (TranslationIds::InvalidHistoricalLocationStartTime, "No es posible obtener la localización de hace más de una semana"),
-        (TranslationIds::PushNotificationActionView, "Ir a la app")
+        (TranslationIds::PushNotificationActionView, "Ir a la app"),
+        (TranslationIds::CannotUseOwnInvitation, "Estás tratando de usar una invitación que tu creaste.\nArmore está diseñado para que compartas tu ubicación con las personas que amas.\nPara lograr esto, debes de mandar la invitación (link) a la persona que quieres que te siga.\nSi tienes dudas, ve a la sección de perfil y pregúntanos lo que sea por email o discord."),
     ].into_iter().collect();
 }

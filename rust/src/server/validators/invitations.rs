@@ -11,7 +11,20 @@ pub fn assert_valid_invitation(
     conn: &mut PostgresConnection,
     data: &LinkActionData,
 ) -> Result<(), APIInternalError> {
-    get_invitation(conn, &data.uuid).and_then(|row| assert_link_state(conn, &row))
+    get_invitation(conn, &data.uuid).and_then(|row| {
+        assert_invitation_creator(&row, &data.username).and_then(|_| assert_link_state(conn, &row))
+    })
+}
+
+fn assert_invitation_creator(row: &Row, username: &str) -> Result<(), APIInternalError> {
+    let creator: String = row.get("creator_username");
+    if creator == username {
+        return Err(APIInternalError {
+            msg: TranslationIds::CannotUseOwnInvitation,
+            engineering_error: None
+        })
+    }
+    Ok(())
 }
 
 fn assert_link_state(conn: &mut PostgresConnection, row: &Row) -> Result<(), APIInternalError> {
