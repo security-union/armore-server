@@ -101,7 +101,7 @@ fn push_accepted_notification(
     conn: &mut PostgresConnection,
     data: &AcceptedNotificationData,
 ) -> Result<(), APIInternalError> {
-    let notification = get_push_inv_notification(conn, data);
+    let notification = build_inv_accepted_notification(conn, data);
 
     RabbitConnection::insecure_open(&get_rabbitmq_uri())
         .and_then(|mut connection| connection.open_channel(None))
@@ -155,7 +155,7 @@ fn get_inv_creator(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIIn
 }
 
 
-fn get_push_inv_notification(
+fn build_inv_accepted_notification(
     conn: &mut PostgresConnection,
     data: &AcceptedNotificationData,
 ) -> JsonValue {
