@@ -100,20 +100,16 @@ pub fn notify_accepted(
         engineering_error: Some(w.to_string()),
     })
     .and_then(|inv_data| {
-        let channel_result = RabbitConnection::insecure_open(&get_rabbitmq_uri())
+        RabbitConnection::insecure_open(&get_rabbitmq_uri())
         .and_then(|mut connection| connection.open_channel(None));
-          
-        match channel_result {
-          Ok(channel) => {
+        .and_then(|channel| {
             let result = push_accepted_notification(conn, &channel, &inv_data);
             let _channel_close = channel.close();
             return result;
-          }
-          Err(w) => return Err(APIInternalError {
+          }).map_err(|w| Err(APIInternalError {
               msg: TranslationIds::BackendIssue,
               engineering_error: Some(w.to_string())
-          })
-        } 
+          })); 
     }); 
 }
 
