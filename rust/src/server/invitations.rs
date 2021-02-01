@@ -78,10 +78,13 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
     get_connection(state)
         .and_then(|mut conn| {
             assert_valid_invitation(&mut conn, &data)
+                .and_then(|_| accept_invitation(&mut conn, &data))
                 .and_then(|_| {
-                    let result = accept_invitation(&mut conn, &data);
-                    let _notify_accepted = notify_accepted(&mut conn, &data);
-                    return result;
+                    notify_accepted(&mut conn, &data).err()
+                        .map(|error| 
+                             error!("error sending notification: {}", 
+                                    error.engineering_error.unwrap_or("unknown".to_string()))); 
+                    Ok(())
                 })
                 .and_then(|_| {
                     Ok(Json(APIResponse {
