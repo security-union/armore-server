@@ -1,3 +1,4 @@
+use crate::constants::INV_ENDPOINT;
 use crate::db::transaction;
 use crate::lang::{get_glossary, TranslationIds};
 use crate::messaging::{build_user_push_notifications, get_rabbitmq_uri, send_notification};
@@ -7,7 +8,6 @@ use crate::model::{
     responses::Errors::APIInternalError,
     PostgresConnection,
 };
-use crate::constants::INV_ENDPOINT;
 use amiquip::Connection as RabbitConnection;
 use amiquip::Result;
 
@@ -154,7 +154,6 @@ fn get_inv_creator(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIIn
     })
 }
 
-
 fn build_inv_accepted_notification(
     conn: &mut PostgresConnection,
     data: &AcceptedNotificationData,
@@ -174,6 +173,7 @@ fn build_inv_accepted_notification(
             title,
             body,
         },
-        conn
+        conn,
+        None
     ))
 }

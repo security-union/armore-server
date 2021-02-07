@@ -35,6 +35,27 @@ pub struct PushNotification {
     pub data: JsonValue,
 }
 
+impl PushNotification {
+
+    pub fn build(device_id: String, data: &NotificationData, priority: Option<&str>) -> Self {
+        let mut notification = Self {
+            deviceId: device_id,
+            data: json!({
+                "title": &data.title,
+                "body": &data.body
+            }),
+        };
+        if let Some(prior) = priority {
+            notification.set_priority(prior)
+        }
+        notification
+    }
+
+    pub fn set_priority(&mut self, priority: &str) {
+        self.data["priority"] = serde_json::Value::String(priority.into());
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NotificationRecipient {
     pub email: Option<String>,
