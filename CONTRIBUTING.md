@@ -47,9 +47,13 @@ While the prerequisites above must be satisfied prior to having your pull reques
 
 Make sure to **squash** your pull request commits before merge. Leave one simple and clean commit message that describes shortly what the pull request was for.
 
+## Styleguides
+
 ### Git commit messages
 
-## Code styleguide
+### Rust styleguide
 
 - Declarative over imperative
 - Defined code structure
+
+## Testing
