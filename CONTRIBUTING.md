@@ -34,6 +34,19 @@ Also, **we will be opening issues** in which you will be able to collaborate:
 
 ### Pull requests
 
+We will consider any contribution you do! But please, make sure to follow these steps before doing it:
+
+- Always **reference the issue/s** you are working on. If no issue is related to your work, make sure to create one describing what you are trying to solve/improve and then link your pull request to it!
+
+- Follow the **styleguides**
+- After you submit your pull request, verify that **all status checks are passing**
+
+> If a status check is failing, and you believe that the failure is unrelated to your change, please leave a comment on the pull request explaining why you believe the failure is unrelated. We will re-run the status check for you. If we conclude that the failure was a false positive, then we will open an issue to track that problem.
+
+While the prerequisites above must be satisfied prior to having your pull request reviewed, we may ask you to complete additional design work, tests, or other changes before your pull request can be ultimately accepted!
+
+Make sure to **squash** your pull request commits before merge. Leave one simple and clean commit message that describes shortly what the pull request was for.
+
 ### Git commit messages
 
 ## Code styleguide
