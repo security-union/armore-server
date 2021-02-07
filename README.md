@@ -11,11 +11,13 @@
   <img alt="node-build" src="https://img.shields.io/github/workflow/status/security-union/armore-server/NodeJS?logo=node.js" />
   <img alt="pr" src="https://img.shields.io/github/issues-pr/security-union/armore-server" />
   <img alt="issues" src="https://img.shields.io/github/issues/security-union/armore-server" />
+  <a href="./CODE_OF_CONDUCT.md" target="_blank">
+    <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg" />
+  </a>
 </p>
 
 <h1 align="center">Armore: Find Family, Friends</h1>
 <h2 align="center">Armore is the e2e encrypted location sharing app available for iOS and other mobile platforms.</h2>
-
 
 <p align="center">
 <a href="https://apps.apple.com/us/app/id1515585896" rel="App Store Link">
@@ -25,7 +27,6 @@
     <img src="docs/marketing/google-play-badge.svg" width="200" title="Google Play" float=left>
 </a>
 </p>
-
 
 > Armore App Backend. A distributed system built with Rust and Node
 
@@ -68,6 +69,7 @@ $ make tests_run
 
 This is going to run all the tests inside a docker environment.
 If you want to have more control over how the tests are performed, you can run:
+
 ### Node Server
 
 ```bash
