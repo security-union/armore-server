@@ -15,6 +15,13 @@
  */
 use std::env;
 
+use crate::controllers::devices::get_subscriber_device_ids;
+use crate::model::{
+    devices::OS,
+    notifications::{NotificationData, PushNotification},
+    responses::Errors::APIInternalError,
+    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
+};
 use amiquip::{
     Channel, Connection, ExchangeDeclareOptions, ExchangeType, Publish, Result as RabbitResult,
 };
@@ -22,18 +29,9 @@ use chrono::Utc;
 use postgres::NoTls;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
-use crate::controllers::devices::get_subscriber_device_ids;
-use crate::model::{
-    responses::Errors::APIInternalError,
-    notifications::{NotificationData, PushNotification},
-    telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
-    devices::OS,
-};
 
-use std::{
-    sync::{Arc, Mutex},
-};
 use rocket::State;
+use std::sync::{Arc, Mutex};
 
 use crate::constants::DATE_FORMAT;
 
@@ -57,7 +55,9 @@ pub fn get_rabbitmq_uri() -> String {
 
 pub fn unlock_channel(state: State<Arc<Mutex<Connection>>>) -> Result<Channel, APIInternalError> {
     let mut guard = state.lock().expect("Rabbit Connection was poisoned");
-    guard.open_channel(None).map_err(APIInternalError::backend_issue)
+    guard
+        .open_channel(None)
+        .map_err(APIInternalError::backend_issue)
 }
 
 pub fn send_ws_message(
@@ -107,21 +107,15 @@ pub fn send_notification(channel: &Channel, value: String) -> RabbitResult<()> {
     exchange.publish(Publish::new(value.as_bytes(), NOTIFICATIONS_ROUTING_KEY))
 }
 
-
 pub fn build_user_push_notifications(
     data: &NotificationData,
     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
+    priority: Option<&str>,
 ) -> Vec<PushNotification> {
     get_subscriber_device_ids(client, &data.username).map_or(vec![], |devices| {
         devices
             .into_iter()
-            .map(|(device_id, _os)| PushNotification {
-                deviceId: device_id,
-                data: json!({
-                    "title": &data.title,
-                    "body": &data.body
-                }),
-            })
+            .map(|(device_id, _os)| PushNotification::build(device_id, data, priority))
             .collect()
     })
 }

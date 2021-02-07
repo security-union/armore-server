@@ -80,6 +80,7 @@ fn format_user_notifications_test() {
             body: "adios!".to_string(),
         },
         &mut client,
+        None,
     );
 
     let result = json!(result).to_string();
@@ -87,5 +88,29 @@ fn format_user_notifications_test() {
     assert_eq!(
         result,
         "[{\"data\":{\"body\":\"adios!\",\"title\":\"hola!\"},\"deviceId\":\"dario_iphone\"}]"
+    );
+}
+
+#[test]
+fn format_user_notifications_with_priority_test() {
+    dbmate_rebuild();
+    let db_client = get_pool();
+    let mut client = db_client.get().unwrap();
+
+    let result = build_user_push_notifications(
+        &NotificationData {
+            username: "dario".to_string(),
+            title: "hola!".to_string(),
+            body: "adios!".to_string(),
+        },
+        &mut client,
+        Some("high"),
+    );
+
+    let result = json!(result).to_string();
+
+    assert_eq!(
+        result,
+        "[{\"data\":{\"body\":\"adios!\",\"priority\":\"high\",\"title\":\"hola!\"},\"deviceId\":\"dario_iphone\"}]"
     );
 }

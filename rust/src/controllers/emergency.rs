@@ -147,7 +147,7 @@ fn build_emergency_notification(
     state: &UserState,
 ) -> Vec<PushNotification> {
     let data = build_notification_data_from_recipient(sender, recipient, state);
-    build_user_push_notifications(&data, conn)
+    build_user_push_notifications(&data, conn, Some("high"))
 }
 
 fn build_emergency_email(
