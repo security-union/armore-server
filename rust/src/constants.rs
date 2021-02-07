@@ -14,4 +14,4 @@ pub const INV_ENDPOINT: &str = "https://armore.dev/invitations";
 
 pub const ASIMOV_LIVES: &str = "asimovlives";
 
-pub static DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S.000Z";
+pub static DATE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.3fZ";
