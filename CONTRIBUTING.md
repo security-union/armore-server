@@ -51,6 +51,37 @@ Make sure to **squash** your pull request commits before merge. Leave one simple
 
 ### Git commit messages
 
+- Use the present tense ("Add feature" not "Added feature")
+- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+- Reference issues and pull requests liberally after the first line
+- Consider starting the commit message with an applicable emoji:
+  - 🎨 :art: when improving the format/structure of the code
+  - ⚡️ :zap: when improving performance
+  - 📝 :memo: when writing docs
+  - 🐛 :bug: when fixing a bug
+  - 🔥 :fire: when removing code or files
+  - 💚 :green_heart: when fixing the CI build
+  - ✅ :white_check_mark: when adding tests
+  - 🔒 :lock: when dealing with security
+  - ⬆️ :arrow_up: when upgrading dependencies
+  - ⬇️ :arrow_down: when downgrading dependencies
+
+Check out the entire [gitmojis list](https://gitmoji.dev/) for more!
+
+### Branch naming
+
+For now we use Jira as our main project management tool. Therefore, most of the branches we create contain the name of the ticket they are intended to solve.
+
+For example: _ARM-197_
+
+However, as an external developer who wants to contribute to the project, we suggest that you use a convention to help us understand the purpose of the branch you want to create.
+
+- feat - New feature.
+- bugfix - Code changes linked to a known issue.
+- hotfix - Quick fixes to the codebase.
+- test - adding tests to the codebase.
+- junk - Experiments (will never be merged).
+
 ### Rust styleguide
 
 - Declarative over imperative
