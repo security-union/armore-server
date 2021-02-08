@@ -55,16 +55,16 @@ Make sure to **squash** your pull request commits before merge. Leave one simple
 - Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
 - Reference issues and pull requests liberally after the first line
 - Consider starting the commit message with an applicable emoji:
-  - 🎨 :art: when improving the format/structure of the code
-  - ⚡️ :zap: when improving performance
-  - 📝 :memo: when writing docs
-  - 🐛 :bug: when fixing a bug
-  - 🔥 :fire: when removing code or files
-  - 💚 :green_heart: when fixing the CI build
-  - ✅ :white_check_mark: when adding tests
-  - 🔒 :lock: when dealing with security
-  - ⬆️ :arrow_up: when upgrading dependencies
-  - ⬇️ :arrow_down: when downgrading dependencies
+  - 🎨 `:art:` when improving the format/structure of the code
+  - ⚡️ `:zap:` when improving performance
+  - 📝 `:memo:` when writing docs
+  - 🐛 `:bug:` when fixing a bug
+  - 🔥 `:fire:` when removing code or files
+  - 💚 `:green_heart:` when fixing the CI build
+  - ✅ `:white_check_mark:` when adding tests
+  - 🔒 `:lock:` when dealing with security
+  - ⬆️ `:arrow_up:` when upgrading dependencies
+  - ⬇️ `:arrow_down:` when downgrading dependencies
 
 Check out the entire [gitmojis list](https://gitmoji.dev/) for more!
 
