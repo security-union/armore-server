@@ -51,8 +51,6 @@ Make sure to **squash** your pull request commits before merge. Leave one simple
 
 ### Git commit messages
 
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
 - Reference issues and pull requests liberally after the first line
 - Consider starting the commit message with an applicable emoji:
   - 🎨 `:art:` when improving the format/structure of the code
@@ -81,10 +79,3 @@ However, as an external developer who wants to contribute to the project, we sug
 - hotfix - Quick fixes to the codebase.
 - test - adding tests to the codebase.
 - junk - Experiments (will never be merged).
-
-### Rust styleguide
-
-- Declarative over imperative
-- Defined code structure
-
-## Testing
