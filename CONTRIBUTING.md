@@ -2,7 +2,7 @@
 
 🍻🎉 Welcome! First off, thanks for taking the time to contribute! 🎉🍻
 
-Feel free to contribute regardless of your age, gender, race or any other discriminating factor (Check out [code of conduct](./CODE_OF_CONDUCT.md) for more) and contact us on [discord](https://discord.gg/mptG9ZGxTF) if you have any question, we are glad to have you here!
+Feel free to contribute regardless of your age, gender, race or any other discriminating factor (Check out [code of conduct](./CODE_OF_CONDUCT.md) for more) and contact us on [discord](https://discord.gg/mptG9ZGxTF) if you have any questions, we are glad to have you here!
 
 ## How to contribute?
 
