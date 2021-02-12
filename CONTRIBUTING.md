@@ -7,7 +7,7 @@ Feel free to contribute regardless of your age, gender, race or any other discri
 ## How to contribute?
 
 Armore is divided into 4 main repositories: _Android_, _iOS_, _Server_ & _Web_.
-For now we are mainly open sourcing the Server repo to the community. If you are interested in collaborating with the android, iOs or Web code (which we will open soon) contact us!
+For now we are mainly open sourcing the Server repo to the community. If you are interested in collaborating with the android, iOS or Web code (which we will open soon) contact us!
 
 You can collaborate with us by reporting **issues**, opening **pull requests** working on one or more issues, or contributing new **ideas/suggestions** in our discord server!
 
