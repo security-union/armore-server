@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 pub mod auth;
 pub mod devices;
 pub mod emergency;
@@ -24,9 +23,9 @@ use postgres::NoTls;
 use r2d2::Pool;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
+use responses::{APIJsonResponse, APIResponse};
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
-use responses::{APIJsonResponse, APIResponse};
 
 pub type APIResult<T> = Result<Json<APIResponse<Option<T>>>, APIJsonResponse>;
 pub type PostgresPool = Pool<PostgresConnectionManager<NoTls>>;
@@ -77,6 +76,7 @@ pub struct Storage {
 #[cfg(test)]
 mod test {
     use chrono::{DateTime, Datelike, Timelike};
+    use super::telemetry::DateTimeRange;
 
     #[test]
     fn test_date_parser() {
@@ -88,5 +88,34 @@ mod test {
         assert_eq!(result.time().hour(), 4);
         assert_eq!(result.time().minute(), 03);
         assert_eq!(result.time().second(), 46);
+    }
+
+    #[test]
+    fn test_date_range_parsing() {
+        let start_time = "2021-02-01T04:03:46.597Z";
+        let end_time = "2021-02-04T04:03:46.597Z";
+        let range = DateTimeRange::from_str(start_time, end_time).unwrap();
+        // assert start time
+        assert_eq!(range.start_time.date().year(), 2021);
+        assert_eq!(range.start_time.date().month(), 2);
+        assert_eq!(range.start_time.date().day(), 1);
+        assert_eq!(range.start_time.time().hour(), 4);
+        assert_eq!(range.start_time.time().minute(), 03);
+        assert_eq!(range.start_time.time().second(), 46);
+        // assert end time
+        assert_eq!(range.end_time.date().year(), 2021);
+        assert_eq!(range.end_time.date().month(), 2);
+        assert_eq!(range.end_time.date().day(), 4);
+        assert_eq!(range.end_time.time().hour(), 4);
+        assert_eq!(range.end_time.time().minute(), 03);
+        assert_eq!(range.end_time.time().second(), 46);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_date_range() {
+        let start_time = "2021-02-01T04:03:46.597Z";
+        let end_time = "2020-01-04T04:03:46.597Z";
+        let _ = DateTimeRange::from_str(start_time, end_time).unwrap();
     }
 }

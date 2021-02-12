@@ -41,7 +41,6 @@ fn test_send_notifications() {
     send_notification(&channel, String::from("Hello, World")).unwrap();
     let message = consume_message(&queue);
     assert_eq!("Hello, World", String::from_utf8_lossy(&message));
-    queue.delete(QueueDeleteOptions::default()).unwrap();
 }
 
 #[test]
@@ -71,8 +70,8 @@ fn test_report_emergency() {
 
     let message = consume_message(&queue);
     assert_eq!(String::from_utf8_lossy(&message), "[{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544g\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.l.encina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"billburr\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"coche_iphone\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"luiscoche9@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"coche\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544f\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.lencina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"louisck\"}]");
-    queue.delete(QueueDeleteOptions::default()).unwrap();
 }
+
 #[test]
 fn test_report_emergency_with_null_email_user() {
     dbmate_rebuild();
@@ -109,7 +108,6 @@ fn test_report_emergency_with_null_email_user() {
 
     let message = consume_message(&queue);
     assert_eq!(String::from_utf8_lossy(&message), "[{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544g\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.l.encina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"billburr\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"coche_iphone\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544f\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.lencina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"louisck\"}]");
-    queue.delete(QueueDeleteOptions::default()).unwrap();
 }
 
 #[test]
@@ -168,7 +166,6 @@ fn test_update_to_normal() {
 
     let message = consume_message(&queue);
     assert_eq!(String::from_utf8_lossy(&message), "[{\"data\":{\"body\":\"Dario Lencina-Talarico is no longer in an emergency.\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544g\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is no longer in an emergency.\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.l.encina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"billburr\"},{\"data\":{\"body\":\"Dario Lencina-Talarico is no longer in an emergency.\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"b526979c-cade-4198-8fa4-fb077ef7544f\"},{\"dynamicTemplateData\":{\"body\":\"Dario Lencina-Talarico is no longer in an emergency.\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandro.lencina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"louisck\"}]");
-    queue.delete(QueueDeleteOptions::default()).unwrap();
 }
 
 #[test]
@@ -241,7 +238,6 @@ fn test_can_report_emergency_for_a_friend_not_in_emergency() {
 
     let message = consume_message(&queue);
     assert_eq!(String::from_utf8_lossy(&message), "[{\"data\":{\"body\":\"Coche Rodríguez is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"priority\":\"high\",\"title\":\"RescueLink SOS\"},\"deviceId\":\"dario_iphone\"},{\"dynamicTemplateData\":{\"body\":\"Coche Rodríguez is in an EMERGENCY! Please CONFIRM that they are okay!!\",\"link\":\"Go to app\",\"linkTitle\":\"https://armore.dev\",\"picture\":\"https://storage.cloud.google.com/rescuelink_user_pictures/predator.png\",\"title\":\"RescueLink SOS\"},\"email\":\"darioalessandrolencina@gmail.com\",\"templateId\":\"d-f4c36d6358cd445e9a873e103c3efe05\",\"username\":\"dario\"}]");
-    queue.delete(QueueDeleteOptions::default()).unwrap();
 }
 
 #[test]
