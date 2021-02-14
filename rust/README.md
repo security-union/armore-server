@@ -1,20 +1,18 @@
-# HTTP Gateway
+# Rust Server
 
 Armore's API
 
 ## How to run tests
 
 ```
-make tests_local_run
+make tests_run
 ```
 
-To run this service locally, use
+To run the services locally, use
 
 ```
-make build_and_run
+make tests_up
 ```
-
-Within the `server` top folder.
 
 ## Sample refresh payload
 
