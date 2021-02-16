@@ -11,7 +11,7 @@ use crate::model::{
 use amiquip::Connection as RabbitConnection;
 use amiquip::Result;
 
-use postgres::row::Row;
+use postgres::{error::SqlState, row::Row};
 use rocket_contrib::json::JsonValue;
 use std::time::SystemTime;
 
@@ -52,21 +52,26 @@ pub fn accept_invitation(
         ts.execute(
             "UPDATE link_invitations SET state = $1, recipient_username = $2 WHERE id = $3",
             &[&InvitationState::ACCEPTED, &data.username, &data.uuid],
-        )
-        .and_then(|_| {
-            ts.query_one(
-                "SELECT * FROM link_invitations WHERE id = $1",
-                &[&data.uuid],
-            )
-        })
-        .and_then(|row| {
-            let user1: String = row.get("creator_username");
-            let user2: String = row.get("recipient_username");
-            ts.execute("call add_friend($1, $2)", &[&user1, &user2])
-        })
-        .and_then(|_| Ok(()))
+        )?;
+        let row = ts.query_one(
+            "SELECT * FROM link_invitations WHERE id = $1",
+            &[&data.uuid],
+        )?;
+        let user1: String = row.get("creator_username");
+        let user2: String = row.get("recipient_username");
+        ts.execute("call add_friend($1, $2)", &[&user1, &user2])?;
+        Ok(())
     })
-    .map_err(APIInternalError::backend_issue)
+    .map_err(|err| {
+        let res = err.code();
+        match res {
+            Some(code) if code == &SqlState::UNIQUE_VIOLATION => APIInternalError {
+                msg: TranslationIds::InvitationsAlreadyFriends,
+                engineering_error: None,
+            },
+            _ => APIInternalError::from_db_err(err),
+        }
+    })
 }
 
 pub fn notify_accepted(
@@ -104,8 +109,8 @@ fn push_accepted_notification(
     let notification = build_inv_accepted_notification(conn, data);
 
     RabbitConnection::insecure_open(&get_rabbitmq_uri())
-        .and_then(|mut connection| connection.open_channel(None))
-        .and_then(|channel| {
+        .and_then(|mut connection| {
+            let channel = connection.open_channel(None)?;
             let result = send_notification(&channel, notification.to_string());
             let _ = channel.close();
             result

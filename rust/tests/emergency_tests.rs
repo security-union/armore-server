@@ -1,4 +1,4 @@
-use amiquip::{Connection, QueueDeleteOptions};
+use amiquip::Connection;
 use lib::constants::ASIMOV_LIVES;
 use lib::server::emergency::rocket;
 use lib::{

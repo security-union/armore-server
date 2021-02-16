@@ -26,11 +26,9 @@ fn update_state(
 ) -> APIResult<Message<UserState>> {
     let new_state = update_state.new_state;
     get_connection(storage)
-        .and_then(|conn| unlock_channel(rabbit).map(|channel| (conn, channel)))
-        .and_then(|(mut conn, channel)| {
-            update_user_state(&mut conn, &channel, &auth_info.username, &new_state)
-        })
-        .and_then(|_| {
+        .and_then(|mut conn| {
+            let channel = unlock_channel(rabbit)?;
+            update_user_state(&mut conn, &channel, &auth_info.username, &new_state)?;
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(Message { message: new_state }),
@@ -47,13 +45,10 @@ fn update_friend_state(
     rabbit: State<Arc<Mutex<RabbitConnection>>>,
 ) -> APIResult<Message<UserState>> {
     get_connection(storage)
-        .and_then(|conn| unlock_channel(rabbit).map(|channel| (conn, channel)))
-        .and_then(|(mut conn, channel)| {
-            assert_not_friends(&mut conn, &auth_info.username, &username).and_then(|_| {
-                update_user_state(&mut conn, &channel, &username, &UserState::Emergency)
-            })
-        })
-        .and_then(|_| {
+        .and_then(|mut conn| {
+            let channel = unlock_channel(rabbit)?;
+            assert_not_friends(&mut conn, &auth_info.username, &username)?;
+            update_user_state(&mut conn, &channel, &username, &UserState::Emergency)?;
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(Message {
@@ -75,8 +70,9 @@ fn get_user_historical_location(
     let date_range = DateTimeRange::from_str(&start_time, &end_time)
         .map_err(|err| APIJsonResponse::api_error(err, None))?;
     get_connection(storage)
-        .and_then(|mut conn| get_historical_location(&mut conn, &auth_info, &username, &date_range))
-        .and_then(|historical| {
+        .and_then(|mut conn| {
+            let historical =
+                get_historical_location(&mut conn, &auth_info, &username, &date_range)?;
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(historical),

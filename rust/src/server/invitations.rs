@@ -35,12 +35,11 @@ fn create(
     )?;
     get_connection(state)
         .and_then(|conn| {
-            create_invitation(conn, data).and_then(|link| {
-                Ok(Json(APIResponse {
-                    success: true,
-                    result: Some(InvitationResponse { link }),
-                }))
-            })
+            let link = create_invitation(conn, data)?;
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(InvitationResponse { link }),
+            }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
@@ -54,16 +53,14 @@ fn reject(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
 
     get_connection(state)
         .and_then(|mut conn| {
-            assert_valid_invitation(&mut conn, &data)
-                .and_then(|_| reject_invitation(conn, data))
-                .and_then(|_| {
-                    Ok(Json(APIResponse {
-                        success: true,
-                        result: Some(Message {
-                            message: "Ok".to_string(),
-                        }),
-                    }))
-                })
+            assert_valid_invitation(&mut conn, &data)?;
+            reject_invitation(conn, data)?;
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(Message {
+                    message: "Ok".to_string(),
+                }),
+            }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
@@ -77,21 +74,18 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
 
     get_connection(state)
         .and_then(|mut conn| {
-            assert_valid_invitation(&mut conn, &data)
-                .and_then(|_| accept_invitation(&mut conn, &data))
-                .and_then(|_| {
-                    let _ = notify_accepted(&mut conn, &data)
-                        .map_err(|w| w.log_err("Error sending notification"));
-                    Ok(())
-                })
-                .and_then(|_| {
-                    Ok(Json(APIResponse {
-                        success: true,
-                        result: Some(Message {
-                            message: "Ok".to_string(),
-                        }),
-                    }))
-                })
+            assert_valid_invitation(&mut conn, &data)?;
+            accept_invitation(&mut conn, &data)?;
+
+            let _ = notify_accepted(&mut conn, &data)
+                .map_err(|w| w.log_err("Error sending notification"));
+
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(Message {
+                    message: "Ok".to_string(),
+                }),
+            }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
@@ -104,16 +98,14 @@ fn remove_friend(
 ) -> APIResult<Message<String>> {
     get_connection(state)
         .and_then(|mut conn| {
-            assert_not_friends(&mut conn, &auth_info.username, &username)
-                .and_then(|_| remove_friends(conn, &auth_info.username, &username))
-                .and_then(|_| {
-                    Ok(Json(APIResponse {
-                        success: true,
-                        result: Some(Message {
-                            message: "Ok".to_string(),
-                        }),
-                    }))
-                })
+            assert_not_friends(&mut conn, &auth_info.username, &username)?;
+            remove_friends(conn, &auth_info.username, &username)?;
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(Message {
+                    message: "Ok".to_string(),
+                }),
+            }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
@@ -122,12 +114,11 @@ fn remove_friend(
 pub fn get_creator(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<JsonValue> {
     get_connection(state)
         .and_then(|mut conn| {
-            get_invitation_creator(&mut conn, &id).and_then(|data| {
-                Ok(Json(APIResponse {
-                    success: true,
-                    result: Some(data),
-                }))
-            })
+            let data = get_invitation_creator(&mut conn, &id)?;
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(data),
+            }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
 }
@@ -136,12 +127,11 @@ pub fn get_creator(id: String, auth_info: AuthInfo, state: State<Storage>) -> AP
 pub fn get_creator_public(id: String, state: State<Storage>) -> APIResult<JsonValue> {
     get_connection(state)
         .and_then(|mut conn| {
-            get_invitation_creator(&mut conn, &id).and_then(|data| {
-                Ok(Json(APIResponse {
-                    success: true,
-                    result: Some(data),
-                }))
-            })
+            let data = get_invitation_creator(&mut conn, &id)?;
+            Ok(Json(APIResponse {
+                success: true,
+                result: Some(data),
+            }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &"en".to_string()))
 }

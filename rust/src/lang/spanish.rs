@@ -8,6 +8,7 @@ lazy_static! {
         (TranslationIds::DeviceNotUpdated, "El dispositivo no se pudo actualizar"),
         (TranslationIds::NoUserForKey, "No existe un usuario para esta llave"),
         (TranslationIds::InvitationsYouAreNotFriends, "Usted no es amig@ de este usuario"),
+        (TranslationIds::InvitationsAlreadyFriends, "Usted ya es amigo/a de este usuario"),
         (TranslationIds::InvitationsInvitationDoesNotExist, "La invitación seleccionada no existe"),
         (TranslationIds::InvitationsInvitationIsNoLongerValid, "La invitación ha expirado"),
         (TranslationIds::DatabaseError, "Error de base de datos, un ingeniero será asignado a este problema"),

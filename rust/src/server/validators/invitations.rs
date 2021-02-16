@@ -11,9 +11,8 @@ pub fn assert_valid_invitation(
     conn: &mut PostgresConnection,
     data: &LinkActionData,
 ) -> Result<(), APIInternalError> {
-    get_invitation(conn, &data.uuid).and_then(|row| {
-        assert_invitation_creator(&row, &data.username).and_then(|_| assert_link_state(conn, &row))
-    })
+    let row = get_invitation(conn, &data.uuid)?;
+    assert_invitation_creator(&row, &data.username).and_then(|_| assert_link_state(conn, &row))
 }
 
 fn assert_invitation_creator(row: &Row, username: &str) -> Result<(), APIInternalError> {
@@ -21,8 +20,8 @@ fn assert_invitation_creator(row: &Row, username: &str) -> Result<(), APIInterna
     if creator == username {
         return Err(APIInternalError {
             msg: TranslationIds::CannotUseOwnInvitation,
-            engineering_error: None
-        })
+            engineering_error: None,
+        });
     }
     Ok(())
 }
@@ -56,7 +55,7 @@ fn get_invitation(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIInt
         "SELECT * FROM link_invitations WHERE id = $1",
         &[&id.to_string()],
     )
-    .map_err(|w| APIInternalError::from_db_err(w))
+    .map_err(APIInternalError::from_db_err)
     .and_then(|rows| {
         rows.into_iter().next().ok_or(APIInternalError {
             msg: TranslationIds::InvitationsInvitationDoesNotExist,
@@ -73,7 +72,7 @@ fn set_invitation_expired(
         "UPDATE link_invitations SET state = $1 WHERE id = $2",
         &[&InvitationState::EXPIRED, &id],
     )
-    .map_err(|w| APIInternalError::from_db_err(w))
+    .map_err(APIInternalError::from_db_err)
     .and_then(|_| {
         Err(APIInternalError {
             msg: TranslationIds::InvitationsInvitationIsNoLongerValid,
