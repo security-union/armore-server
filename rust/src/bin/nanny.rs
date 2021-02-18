@@ -5,7 +5,6 @@ use std::thread;
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
 use lib::controllers::telemetry::force_refresh_telemetry_internal;
 use lib::db::get_pool;
-use lib::messaging::slack::send_nanny_slack_message;
 use lib::model::auth::AuthInfo;
 
 use log::{debug, error, info};
