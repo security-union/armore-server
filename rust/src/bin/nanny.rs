@@ -1,15 +1,13 @@
 use chrono::{Duration, Local};
 use std::env;
 use std::thread;
-use tokio::runtime::Runtime;
 
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
-use lib::db::get_pool;
 use lib::controllers::telemetry::force_refresh_telemetry_internal;
-use lib::messaging::slack::send_nanny_slack_message;
+use lib::db::get_pool;
 use lib::model::auth::AuthInfo;
 
-use log::{debug, info, error};
+use log::{debug, error, info};
 use redis::Commands;
 /**
 Nanny is a program that has the following jobs:
@@ -38,18 +36,6 @@ fn main() {
         .expect("POLL_PERIOD_SECONDS must be set")
         .parse()
         .expect("POLL_PERIOD_SECONDS was in a bad format. Must be u64");
-    let nanny_msg = format!(
-        "starting nanny: \
-    ONLINE_THRESHOLD_MINUTES {}\
-    OFFLINE_CUT_OFF_MINUTES: {}\
-    POLL_PERIOD_SECONDS: {}",
-        online_threshold_minutes, offline_cut_off_minutes, poll_period_seconds
-    );
-    Runtime::new()
-        .expect("Failed to create Tokio runtime")
-        .block_on(send_nanny_slack_message(nanny_msg.to_string()))
-        .expect("Error blocking on slack message");
-    info!("{}", nanny_msg);
     start_run_loop(
         &redis_url,
         &online_threshold_minutes,
