@@ -1,8 +1,12 @@
 use lib::server::http_gateway::rocket;
-use log::info;
+use lib::server::middleware::logging;
+use rocket_sentry_logger as logger;
 
 fn main() {
     env_logger::init();
-    info!("starting");
-    rocket().launch();
+    let _guard = logger::init();
+    rocket()
+        .attach(logger::fairing())
+        .attach(logging::api_json_response_fairing(Some("Http gateway")))
+        .launch();
 }
