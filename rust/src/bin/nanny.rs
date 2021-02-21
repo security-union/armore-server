@@ -6,7 +6,7 @@ use lib::constants::TELEMETRY_LAST_SEEN_SET;
 use lib::controllers::telemetry::force_refresh_telemetry_internal;
 use lib::db::get_pool;
 use lib::model::auth::AuthInfo;
-use rocket_sentry_logger as logger;
+use rocket_sentry_logger::{self as logger, InitConfig};
 
 use log::{debug, error, info};
 use redis::Commands;
@@ -21,7 +21,10 @@ Nanny is a program that has the following jobs:
 fn main() {
     env_logger::init();
     info!("Starting");
-    let _guard = logger::init();
+    let _guard = logger::init(Some(InitConfig {
+        service: Some("Nanny"),
+        ..Default::default()
+    }));
 
     let redis_url = env::var("REDIS_URL").expect("REDIS_URL must be set");
 

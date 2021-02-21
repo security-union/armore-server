@@ -17,8 +17,6 @@ use crate::{
 use rocket::{Rocket, State};
 use rocket_contrib::json::{Json, JsonValue};
 use uuid::Uuid;
-use crate::server::middleware::logging;
-use rocket_sentry_logger as logger;
 
 /// Create a new invitation link from post request
 /// Requires client AuthInfo and the expiration date
@@ -154,8 +152,6 @@ pub fn rocket() -> Rocket {
         )
         .register(catchers())
         .attach(options())
-        .attach(logger::fairing())
-        .attach(logging::api_json_response_fairing(Some("invitations")))
         .manage(Storage {
             redis: None,
             database,
