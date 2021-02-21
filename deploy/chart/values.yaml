@@ -329,8 +329,6 @@ deployments:
       tag: ""
     podAnnotations:
       app: redis
-    command: ["redis-server"]
-    args: ["/redis.conf"]
     ports:
       - name: http
         containerPort: 6379

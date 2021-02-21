@@ -21,6 +21,8 @@ RUN apt-get update && \
 
 COPY redis.conf /redis.conf
 
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 RUN mkdir /redis-data
 
 VOLUME /data
@@ -28,5 +30,4 @@ WORKDIR /data
 
 EXPOSE 6379
 
-ENTRYPOINT []
-CMD []
+ENTRYPOINT ["/entrypoint.sh"]
