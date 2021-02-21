@@ -1,5 +1,6 @@
 use super::middleware::{catchers::catchers, cors::options};
 use super::validators::friends::assert_not_friends;
+use crate::server::middleware::logging;
 use crate::{
     controllers::emergency::{get_historical_location, update_user_state},
     db::{get_connection, get_pool},
@@ -13,6 +14,8 @@ use crate::{
 };
 use rocket::{Rocket, State};
 use rocket_contrib::json::Json;
+use rocket_sentry_logger as logger;
+use std::sync::{Arc, Mutex};
 
 #[post("/state", format = "application/json", data = "<update_state>")]
 fn update_state(
@@ -76,6 +79,8 @@ fn get_user_historical_location(
 
 pub fn rocket() -> Rocket {
     let database = get_pool();
+    let guard = logger::init();
+
     rocket::ignite()
         .mount(
             "/v1/emergency",
@@ -87,6 +92,9 @@ pub fn rocket() -> Rocket {
         )
         .register(catchers())
         .attach(options())
+        .attach(logger::fairing())
+        .attach(logging::api_json_response_fairing(Some("emergency")))
+        .manage(guard)
         .manage(Storage {
             redis: None,
             database,

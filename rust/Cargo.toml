@@ -32,5 +32,5 @@ serde_json="1.0"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 uuid = { version = "0.8", features = ["serde", "v4"] }
 pretty_assertions = "0.6.1"
-rocket_sentry_logger = "0.2.1"
+rocket_sentry_logger = "0.3.0"
 

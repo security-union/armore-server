@@ -23,6 +23,8 @@ use crate::model::{
     telemetry::{CommandState, FollowerKey},
     Storage,
 };
+use rocket_sentry_logger as logger;
+use crate::server::middleware::logging;
 
 #[allow(unused_must_use)]
 #[post(
@@ -197,7 +199,7 @@ pub fn rocket() -> Rocket {
         redis: Some(redis),
         database,
     };
-
+    let guard = logger::init();
     rocket::ignite()
         .mount(
             "/v1",
@@ -210,5 +212,8 @@ pub fn rocket() -> Rocket {
         )
         .register(catchers())
         .attach(cors::options())
+        .attach(logger::fairing())
+        .attach(logging::api_json_response_fairing(Some("Http gateway")))
+        .manage(guard)
         .manage(storage)
 }
