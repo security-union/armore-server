@@ -39,8 +39,8 @@ spec:
             - name: SLACK_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: slack
-                  key: token
+                  name: device-simulator-accounts
+                  key: slack_token
             - name: USER_A_EMAIL
               valueFrom:
                 secretKeyRef:

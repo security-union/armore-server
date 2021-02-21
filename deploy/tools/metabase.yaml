@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: metabase
-          image: metabase/metabase:v0.37.0.1
+          image: metabase/metabase:v0.38.0.1
           resources:
             limits:
               memory: "600M"
@@ -66,7 +66,7 @@ spec:
       volumes:
         - name: cloudsql-instance-credentials
           secret:
-            secretName: cloudsql-instance-credentials
+            secretName: prod-armore-cloudsql
 ---
 kind: Service
 apiVersion: v1
