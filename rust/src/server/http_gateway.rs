@@ -199,7 +199,6 @@ pub fn rocket() -> Rocket {
         redis: Some(redis),
         database,
     };
-    let guard = logger::init();
     rocket::ignite()
         .mount(
             "/v1",
@@ -214,6 +213,5 @@ pub fn rocket() -> Rocket {
         .attach(cors::options())
         .attach(logger::fairing())
         .attach(logging::api_json_response_fairing(Some("Http gateway")))
-        .manage(guard)
         .manage(storage)
 }

@@ -139,7 +139,6 @@ pub fn get_creator_public(id: String, state: State<Storage>) -> APIResult<JsonVa
 }
 
 pub fn rocket() -> Rocket {
-    let guard = logger::init();
     let database = get_pool();
     rocket::ignite()
         .mount(
@@ -157,7 +156,6 @@ pub fn rocket() -> Rocket {
         .attach(options())
         .attach(logger::fairing())
         .attach(logging::api_json_response_fairing(Some("invitations")))
-        .manage(guard)
         .manage(Storage {
             redis: None,
             database,

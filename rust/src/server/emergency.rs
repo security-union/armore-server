@@ -94,7 +94,6 @@ pub fn rocket() -> Rocket {
         .attach(options())
         .attach(logger::fairing())
         .attach(logging::api_json_response_fairing(Some("emergency")))
-        .manage(guard)
         .manage(Storage {
             redis: None,
             database,
