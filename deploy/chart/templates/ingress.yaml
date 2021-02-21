@@ -23,8 +23,9 @@ spec:
     {{- range .Values.ingress.tls }}
     - hosts:
         {{- range .hosts }}
+        {{- if eq $namespace "default"  }}
         - {{ . | quote }}
-        {{- if ne $namespace "default"  }}
+        {{- else }}
         {{- $host := splitn "." 2 . }}
         - {{ printf "%s.%s.%s" $host._0 $namespace $host._1 | quote }}
         {{- end }}
@@ -33,29 +34,22 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-  {{- range .Values.ingress.hosts }}
-    {{- $serviceName := .name  }}
-    {{- $servicePort := .servicePort }}
+    {{- range .Values.ingress.hosts }}
+    {{- if eq $namespace "default"  }}
     - host: {{ .host | quote }}
-      http:
-        paths:
-          {{- range .paths }}
-          - path: {{ . }}
-            backend:
-                serviceName: {{ printf "%s-%s" $fullName $serviceName }}
-                servicePort: {{ $servicePort }}
-          {{- end }}
-    {{- if ne $namespace "default" }}
+    {{- else }}
     {{- $host := splitn "." 2 .host }}
     - host: {{ printf "%s.%s.%s" $host._0 $namespace $host._1 | quote }}
+    {{- end }}
       http:
         paths:
+          {{- $serviceName := .name -}}
+          {{- $servicePort := .servicePort -}}
           {{- range .paths }}
           - path: {{ . }}
             backend:
                 serviceName: {{ printf "%s-%s" $fullName $serviceName }}
                 servicePort: {{ $servicePort }}
           {{- end }}
-    {{- end }}
     {{- end }}
   {{- end }}
