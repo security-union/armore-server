@@ -291,7 +291,7 @@ fn test_accept_already_friends() {
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(
         &response.body_string().unwrap(),
-        r#"{"result":{"engineeringError":"db error: ERROR: duplicate key value violates unique constraint \"users_followers_pkey\"\nDETAIL: Key (username, username_follower)=(dario, coche) already exists.","message":"Service unavailable, please try again"},"success":false}"#
+        r#"{"result":{"engineeringError":null,"message":"You are already friends with this user"},"success":false}"#
     );
 }
 

@@ -27,7 +27,8 @@ pub enum TranslationIds {
     EmergencyModePushNotificationBody,
     PushNotificationActionView,
     InvalidHistoricalLocationStartTime,
-    CannotUseOwnInvitation
+    CannotUseOwnInvitation,
+    InvitationsAlreadyFriends
 }
 
 

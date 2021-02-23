@@ -7,6 +7,7 @@ lazy_static! {
         (TranslationIds::DeviceNotFound, "Device not found"),
         (TranslationIds::DeviceNotUpdated, "Device not updated"),
         (TranslationIds::BackendIssue, "Service unavailable, please try again"),
+        (TranslationIds::InvitationsAlreadyFriends, "You are already friends with this user"),
         (TranslationIds::InvitationsYouAreNotFriends, "You are not friends with this user"),
         (TranslationIds::InvitationsInvitationDoesNotExist, "There is no invitation with that id"),
         (TranslationIds::InvitationsInvitationIsNoLongerValid, "The invitation is no longer valid"),
