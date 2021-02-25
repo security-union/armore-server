@@ -48,7 +48,6 @@ deployments:
       - cloudStorage
       - postgres
       - rabbitMQ
-      - slack
     command: ["yarn"]
     args: ["start"]
     image:
@@ -277,8 +276,6 @@ deployments:
         value: "4320"
       - name: POLL_PERIOD_SECONDS
         value: "1800"
-      - name: SLACK_NANNY_URL
-        value: slack.com
     ports:
       - name: http
         containerPort: 8000
