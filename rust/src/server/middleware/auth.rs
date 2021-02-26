@@ -18,13 +18,13 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::{request, Request, State};
 use serde_json::Value;
 
+use crate::constants::ASIMOV_LIVES;
 use crate::controllers::telemetry::{get_public_key, get_user_details};
 use crate::model::{
     auth::{AuthInfo, Claims},
     responses::{APIJsonResponse, Errors::APIError},
     Storage,
 };
-use crate::{constants::ASIMOV_LIVES, model::UserDetails};
 use rocket_sentry_logger as logger;
 
 impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
@@ -126,13 +126,11 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
                         .ok()
                         .flatten();
 
-                let mut language: String = "en".into();
+                let language: String = user_details.map_or("en".into(), |details| {
+                    details.language.unwrap_or("en".into())
+                });
 
-                if let Some(user_details) = user_details {
-                    set_sentry_user(&token_data.claims, &user_details);
-                    language = user_details.language.unwrap_or("en".into());
-                }
-
+                set_sentry_user(&token_data.claims);
                 Outcome::Success(AuthInfo {
                     key: token.to_string(),
                     username: token_data.claims.username,
@@ -154,30 +152,15 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
     }
 }
 
-fn set_sentry_user(claims: &Claims, user_details: &UserDetails) {
-    let user_data: BTreeMap<String, Value> = vec![
-        (
-            "device_id".into(),
-            serde_json::json!(claims.deviceId.clone()),
-        ),
-        (
-            "First Name".into(),
-            serde_json::json!(user_details.firstName.clone()),
-        ),
-        (
-            "Last Name".into(),
-            serde_json::json!(user_details.lastName.clone()),
-        ),
-        (
-            "Phone number".into(),
-            serde_json::json!(user_details.phoneNumber),
-        ),
-    ]
+fn set_sentry_user(claims: &Claims) {
+    let user_data: BTreeMap<String, Value> = vec![(
+        "device_id".into(),
+        serde_json::json!(claims.deviceId.clone()),
+    )]
     .into_iter()
     .collect();
     let user = logger::User {
         username: Some(claims.username.clone()),
-        email: user_details.email.clone(),
         other: user_data,
         ..Default::default()
     };
