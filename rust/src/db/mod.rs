@@ -1,3 +1,9 @@
+use super::model::{PostgresConnection, PostgresPool, Storage};
+use crate::model::responses::Errors::APIInternalError;
+use postgres::{error::Error, IsolationLevel, NoTls, Transaction};
+use r2d2::Pool;
+use r2d2_postgres::PostgresConnectionManager;
+use rocket::State;
 /**
  * Copyright [2020] [Dario Alessandro Lencina Talarico]
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,12 +17,6 @@
  * limitations under the License.
  */
 use std::env;
-use postgres::{error::Error, IsolationLevel, NoTls, Transaction};
-use r2d2::Pool;
-use r2d2_postgres::PostgresConnectionManager;
-use super::model::{PostgresConnection, PostgresPool, Storage};
-use crate::model::responses::Errors::APIInternalError;
-use rocket::State;
 
 pub fn get_database_url() -> String {
     if let Ok(url) = env::var("PG_URL") {
@@ -52,7 +52,10 @@ pub fn get_pool() -> PostgresPool {
 /// If it fails return an API Result
 /// This function is intended to be used to return the results of an API Call
 pub fn get_connection(state: State<Storage>) -> Result<PostgresConnection, APIInternalError> {
-    state.database.get().map_err(APIInternalError::backend_issue)
+    state
+        .database
+        .get()
+        .map_err(APIInternalError::backend_issue)
 }
 
 pub fn transaction<F, T>(conn: &mut PostgresConnection, action: F) -> Result<T, Error>

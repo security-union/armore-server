@@ -1,7 +1,6 @@
 use rocket_contrib::json::JsonValue;
 use serde::{Deserialize, Serialize};
 
-
 #[allow(non_snake_case)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Email {
@@ -36,7 +35,6 @@ pub struct PushNotification {
 }
 
 impl PushNotification {
-
     pub fn build(device_id: String, data: &NotificationData, priority: Option<&str>) -> Self {
         let mut notification = Self {
             deviceId: device_id,

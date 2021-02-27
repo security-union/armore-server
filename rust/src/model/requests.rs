@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use super::devices::{LocationPermissionState, AppState, BatteryState};
+use super::devices::{AppState, BatteryState, LocationPermissionState};
 use super::telemetry::TelemetryUpdate;
+use serde::{Deserialize, Serialize};
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Clone, Debug)]

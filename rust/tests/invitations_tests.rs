@@ -13,7 +13,7 @@ mod common;
 use common::{
     auth::{create_token, MOCK_PUBLIC_KEY},
     db::{insert_mock_friends, insert_mock_invitation_link, insert_mock_public_key},
-    dbmate::dbmate_rebuild
+    dbmate::dbmate_rebuild,
 };
 
 fn week() -> Duration {
@@ -239,7 +239,6 @@ fn test_accept_own_invitation() {
         &response.body_string().unwrap()
     );
 }
-
 
 #[test]
 fn test_accept_accepted_invitation() {

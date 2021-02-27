@@ -75,8 +75,8 @@ pub struct Storage {
 
 #[cfg(test)]
 mod test {
-    use chrono::{DateTime, Datelike, Timelike};
     use super::telemetry::DateTimeRange;
+    use chrono::{DateTime, Datelike, Timelike};
 
     #[test]
     fn test_date_parser() {
