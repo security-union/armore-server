@@ -3,7 +3,7 @@ FROM rust:1.50.0 as build
 WORKDIR /usr/src/http_gateway
 COPY . .
 
-RUN rustup default nightly-2020-08-28
+RUN rustup default nightly-2021-02-25
 
 RUN cargo build --release
 
