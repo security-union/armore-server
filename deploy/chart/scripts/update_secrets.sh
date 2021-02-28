@@ -22,4 +22,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 deployment_name=$1
 
-berglas update ${BUCKET_ID}/${deployment_name} $(cat $DIR/../secrets/${deployment_name}.yaml | base64) --key $ARMORE_BERGLAS_KEY
+berglas update -l debug ${BUCKET_ID}/${deployment_name} "$(cat $DIR/../secrets/${deployment_name}.yaml | base64)" --key=$ARMORE_BERGLAS_KEY
