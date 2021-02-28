@@ -28,9 +28,8 @@ pub enum TranslationIds {
     PushNotificationActionView,
     InvalidHistoricalLocationStartTime,
     CannotUseOwnInvitation,
-    InvitationsAlreadyFriends
+    InvitationsAlreadyFriends,
 }
-
 
 pub fn get_glossary(language: &str) -> &'static HashMap<TranslationIds, &'static str> {
     match language {
