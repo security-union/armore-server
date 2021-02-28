@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: device-simulator
+  labels:
+    app: device-simulator
+spec:
+  selector:
+    matchLabels:
+      app: device-simulator
+  template:
+    metadata:
+      labels:
+        app: device-simulator
+    spec:
+      containers:
+        - name: device-simulator
+          image: gcr.io/iot-garage-242501/device-simulator:6a1644c9a3c3250f4f4025f396d1746995ef61e0
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "100M"
+              cpu: "50m"
+            requests:
+              memory: "25M"
+              cpu: "5m"
+          command: ["python"]
+          args:
+            [
+              "simulate.py",
+              "--env",
+              "production",
+              "--imap-server",
+              "imap.gmail.com",
+            ]
+          env:
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: SLACK_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: device-simulator-accounts
+                  key: slack_token
+            - name: USER_A_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: device-simulator-accounts
+                  key: user_a_email
+            - name: USER_B_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: device-simulator-accounts
+                  key: user_b_email
+            - name: USER_A_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: device-simulator-accounts
+                  key: user_a_pass
+            - name: USER_B_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: device-simulator-accounts 
+                  key: user_b_pass
