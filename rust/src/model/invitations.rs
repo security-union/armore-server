@@ -1,11 +1,11 @@
-use postgres_types::{FromSql, ToSql};
-use serde::{Deserialize, Serialize};
 use super::responses::APIJsonResponse;
 use chrono::{DateTime, Utc};
+use postgres_types::{FromSql, ToSql};
+use serde::{Deserialize, Serialize};
 
 
-#[postgres(name = "link_invitation_state")]
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
+#[postgres(name = "link_invitation_state")]
 pub enum InvitationState {
     CREATED,
     REJECTED,

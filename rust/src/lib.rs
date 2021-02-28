@@ -1,4 +1,3 @@
-#![feature(iterator_fold_self)]
 #![feature(result_flattening)]
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use]
@@ -23,10 +22,10 @@ extern crate rocket_contrib;
 extern crate lazy_static;
 extern crate redis;
 
-pub mod controllers;
-pub mod server;
 pub mod constants;
+pub mod controllers;
 pub mod db;
-pub mod model;
-pub mod messaging;
 pub mod lang;
+pub mod messaging;
+pub mod model;
+pub mod server;

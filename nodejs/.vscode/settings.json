@@ -1,5 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
+    "vim.useCtrlKeys": false,
     "search.exclude": {
         "**/node_modules": true,
         "**/bower_components": true,

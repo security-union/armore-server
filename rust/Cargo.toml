@@ -9,7 +9,7 @@ name = "lib"
 path = "src/lib.rs"
 
 [dependencies]
-amiquip = "0.3"
+amiquip = "0.4.0"
 chrono = "0.4.19"
 env_logger = "0.8"
 futures = "0.3.8"
