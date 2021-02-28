@@ -6,14 +6,12 @@ pub struct UpdateState {
     pub new_state: UserState,
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
 #[postgres(name = "accesstype")]
 pub enum AccessType {
     Permanent,
     EmergencyOnly,
 }
-
 
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
 #[postgres(name = "userstate")]

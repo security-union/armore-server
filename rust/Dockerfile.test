@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY . .
 RUN rustup default nightly-2021-02-25
+RUN rustup component add rustfmt
 # Build cargo cache
 RUN cargo build
 

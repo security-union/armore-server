@@ -50,13 +50,11 @@ pub struct Connection {
     pub publicKey: Option<String>,
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
 #[postgres(name = "command")]
 pub enum Command {
     RefreshTelemetry,
 }
-
 
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
 #[postgres(name = "commandstate")]
