@@ -35,8 +35,8 @@ module "gke" {
       name               = "${var.name}-node-pool"
       machine_type       = "e2-small"
       min_count          = 1
-      max_count          = 3 
-      disk_size_gb       = 30 
+      max_count          = 8
+      disk_size_gb       = 30
       disk_type          = "pd-ssd"
       image_type         = "COS"
       auto_repair        = true

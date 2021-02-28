@@ -198,6 +198,16 @@ Sendgrid environment variables
 Slack environment variables
 */}}
 {{- define "armore.slack" -}}
+- name: BETA_SIGNUP_SLACK_WEBHOOK_URL
+  valueFrom:
+    secretKeyRef:
+      name: "{{ include "armore.fullname" . }}-slack"
+      key: signup-url
+- name: SLACK_NANNY_URL
+  valueFrom:
+    secretKeyRef:
+      name: "{{ include "armore.fullname" . }}-slack"
+      key: nanny-url
 {{- end }}
 
 {{/*

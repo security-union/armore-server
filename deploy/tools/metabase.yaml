@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metabase
+  labels:
+    app: metabase
+spec:
+  selector:
+    matchLabels:
+      app: metabase
+  template:
+    metadata:
+      labels:
+        app: metabase
+    spec:
+      containers:
+        - name: metabase
+          image: metabase/metabase:v0.38.0.1
+          resources:
+            limits:
+              memory: "600M"
+              cpu: "600m"
+            requests:
+              memory: "300M"
+              cpu: "300m"
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MB_DB_TYPE
+              value: "postgres"
+            - name: MB_DB_DBNAME
+              value: "metabase"
+            - name: MB_DB_PORT
+              value: "5432"
+            - name: MB_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-credentials
+                  key: user
+            - name: MB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-credentials
+                  key: pass
+            - name: MB_DB_HOST
+              value: "localhost"
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.14
+          command: [
+              "/cloud_sql_proxy",
+              "-instances=iot-garage-242501:us-central1:garage-db=tcp:5432",
+              # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+              # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+              # "-ip_address_types=PRIVATE",
+              "-credential_file=/secrets/cloudsql/credentials.json",
+            ]
+          # [START cloudsql_security_context]
+          securityContext:
+            runAsUser: 2 # non-root user
+            allowPrivilegeEscalation: false
+          # [END cloudsql_security_context]
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: prod-armore-cloudsql
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: metabase-internal-service
+  labels:
+    app: metabase
+spec:
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30028
+  selector:
+    app: metabase
+  type: NodePort
