@@ -28,8 +28,12 @@ Shout out to this repo https://github.com/kubernetes/ingress-nginx/
 
 ```
 helm install ingress-nginx ingress-nginx/ingress-nginx
+
 # Then get the external ip for the load balancer
 kubectl --namespace default get services -o wide -w ingress-nginx-controller
+
+# Apply nginx custom config-map
+kubectl apply -f nginx-config.yaml
 ```
 
 Setup a Cloud DNS route for the external ip
