@@ -50,14 +50,14 @@ pub struct Connection {
     pub publicKey: Option<String>,
 }
 
-#[postgres(name = "command")]
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
+#[postgres(name = "command")]
 pub enum Command {
     RefreshTelemetry,
 }
 
-#[postgres(name = "commandstate")]
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
+#[postgres(name = "commandstate")]
 pub enum CommandState {
     Created,
     Completed,

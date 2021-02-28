@@ -10,7 +10,7 @@ WORKDIR /app
 RUN apk add curl
 
 # Install DB Migration tool.
-RUN curl -fsSL -o /usr/local/bin/dbmate ${dbmate_url}
+RUN curl -fsSL -o /usr/local/bin/dbmate $dbmate_url
 RUN chmod +x /usr/local/bin/dbmate
 
 COPY src /app/src

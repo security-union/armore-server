@@ -44,7 +44,8 @@ fn test_create_invitation_link() {
     assert_eq!(response.status(), Status::Ok);
     assert!(
         re.is_match(&response.body_string().unwrap()),
-        format!("actual {}", &response.body_string().unwrap())
+        "actual {}",
+        &response.body_string().unwrap()
     );
 
     let rows = db_client

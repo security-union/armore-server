@@ -20,8 +20,8 @@ pub struct Device {
     pub appVersion: Option<String>,
 }
 
-#[postgres(name = "locationpermissionstate")]
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
+#[postgres(name = "locationpermissionstate")]
 pub enum LocationPermissionState {
     ALWAYS,
     USING,
@@ -30,16 +30,16 @@ pub enum LocationPermissionState {
     UNKNOWN,
 }
 
-#[postgres(name = "appstate")]
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
+#[postgres(name = "appstate")]
 pub enum AppState {
     Background,
     Foreground,
     UNKNOWN,
 }
 
-#[postgres(name = "chargingstate")]
 #[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
+#[postgres(name = "chargingstate")]
 pub enum ChargingState {
     ChargingUsb,
     ChargingAc,
@@ -47,10 +47,10 @@ pub enum ChargingState {
     UNKNOWN,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
 #[allow(non_snake_case)]
 #[allow(non_camel_case_types)]
 #[postgres(name = "os")]
-#[derive(Serialize, Deserialize, Clone, Debug, ToSql, FromSql, PartialEq, Eq, Copy)]
 pub enum OS {
     Android,
     iOS,

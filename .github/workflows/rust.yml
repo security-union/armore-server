@@ -6,7 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    container: rust:1.42.0
+    container: rust:1.50.0
     services:
       rabbitmq:
         image: rabbitmq:3-management
@@ -35,7 +35,7 @@ jobs:
       - name: Download dbmate
         run: curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v1.10.0/dbmate-linux-amd64 && chmod +x /usr/local/bin/dbmate
       - name: Set rust to nightly channel
-        run: rustup default nightly-2020-05-18
+        run: rustup default nightly-2021-02-21
       - name: Test rust-server
         env:
           RABBITMQ_USER: rabbitmq
