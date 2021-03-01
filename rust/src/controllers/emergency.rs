@@ -25,6 +25,7 @@ use crate::{
 };
 use amiquip::{Channel, Result};
 use rocket_contrib::json::JsonValue;
+use crate::constants::DEFAULT_NOTIFICATION_ICON;
 
 /// Get the historical location of a user for a given range
 /// Assert if location range is valid, user is in emergency and
@@ -203,6 +204,7 @@ fn build_notification_data_from_recipient(
         username: recipient.username.clone(),
         title: "Armore SOS".to_string(),
         body: body.to_string(),
+        icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
     }
 }
 

@@ -1,3 +1,5 @@
+#[macro_use] extern crate pretty_assertions;
+
 use amiquip::Connection as RabbitConnection;
 use lib::{
     db::get_pool,
@@ -10,6 +12,7 @@ use lib::{
 
 mod common;
 use common::dbmate::dbmate_rebuild;
+use lib::constants::DEFAULT_NOTIFICATION_ICON;
 
 #[macro_use]
 extern crate rocket_contrib;
@@ -78,6 +81,7 @@ fn format_user_notifications_test() {
             username: "dario".to_string(),
             title: "hola!".to_string(),
             body: "adios!".to_string(),
+            icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
         },
         &mut client,
         None,
@@ -87,7 +91,7 @@ fn format_user_notifications_test() {
 
     assert_eq!(
         result,
-        "[{\"data\":{\"body\":\"adios!\",\"title\":\"hola!\"},\"deviceId\":\"dario_iphone\"}]"
+        "[{\"data\":{\"body\":\"adios!\",\"icon\":\"ic_stat_logo\",\"title\":\"hola!\"},\"deviceId\":\"dario_iphone\"}]"
     );
 }
 
@@ -102,6 +106,7 @@ fn format_user_notifications_with_priority_test() {
             username: "dario".to_string(),
             title: "hola!".to_string(),
             body: "adios!".to_string(),
+            icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
         },
         &mut client,
         Some("high"),
@@ -111,6 +116,6 @@ fn format_user_notifications_with_priority_test() {
 
     assert_eq!(
         result,
-        "[{\"data\":{\"body\":\"adios!\",\"priority\":\"high\",\"title\":\"hola!\"},\"deviceId\":\"dario_iphone\"}]"
+        "[{\"data\":{\"body\":\"adios!\",\"icon\":\"ic_stat_logo\",\"priority\":\"high\",\"title\":\"hola!\"},\"deviceId\":\"dario_iphone\"}]"
     );
 }
