@@ -175,8 +175,8 @@ fn build_emergency_email(
             } else {
                 None
             },
-            linkTitle: WEB_URL.to_string(),
-            link: Some(link),
+            link: Some(WEB_URL.to_string()),
+            linkTitle: link,
         },
     }
 }
