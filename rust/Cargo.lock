@@ -316,6 +316,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "derive-enum-error"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5aad4c26598cfc736941598ee326411423b705bff22968c09ef7f9e3a3cf2d6e"
+dependencies = [
+ "proc-macro2 0.4.30",
+ "quote 0.6.13",
+ "rustc_version",
+ "syn 0.15.44",
+ "synstructure",
+]
+
+[[package]]
 name = "devise"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -378,6 +391,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88d7ed2934d741c6b37e33e3832298e8850b53fd2d2bea03873375596c7cea4e"
 
 [[package]]
+name = "dynfmt"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e78d6517755f240c3aa413fc3423b31ddb3c2f548b51a4b2933d5ac0dcab48b5"
+dependencies = [
+ "derive-enum-error",
+ "erased-serde",
+ "lazy_static",
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -397,6 +424,15 @@ dependencies = [
  "log 0.4.13",
  "regex",
  "termcolor",
+]
+
+[[package]]
+name = "erased-serde"
+version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0465971a8cc1fa2455c8465aaa377131e1f1cf4983280f474a13e68793aa770c"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -1787,6 +1823,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustc_version"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
+dependencies = [
+ "semver",
+]
+
+[[package]]
 name = "ryu"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1920,6 +1965,7 @@ version = "0.1.0"
 dependencies = [
  "amiquip",
  "chrono",
+ "dynfmt",
  "env_logger",
  "futures",
  "jsonwebtoken",
@@ -2081,6 +2127,18 @@ dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.8",
  "unicode-xid 0.2.1",
+]
+
+[[package]]
+name = "synstructure"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02353edf96d6e4dc81aea2d8490a7e9db177bf8acb0e951c24940bf866cb313f"
+dependencies = [
+ "proc-macro2 0.4.30",
+ "quote 0.6.13",
+ "syn 0.15.44",
+ "unicode-xid 0.1.0",
 ]
 
 [[package]]

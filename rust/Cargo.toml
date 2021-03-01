@@ -11,6 +11,7 @@ path = "src/lib.rs"
 [dependencies]
 amiquip = "0.4.0"
 chrono = "0.4.19"
+dynfmt = { version = "0.1.4", features = ["curly"] }
 env_logger = "0.8"
 futures = "0.3.8"
 jsonwebtoken = "7.2.0"

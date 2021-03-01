@@ -7,8 +7,8 @@ use crate::server::validators::{
     datetime::assert_valid_location_historical_start, emergency_user::assert_emergency_user,
     friends::assert_not_friends,
 };
+use dynfmt::{Format, SimpleCurlyFormat};
 use log::error;
-
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
     controllers::telemetry::get_user_details,
@@ -192,11 +192,17 @@ fn build_notification_data_from_recipient(
             UserState::Normal => &TranslationIds::NormalModePushNotificationBody,
         })
         .unwrap();
-    let body = format!("{} {} {}", sender.firstName, sender.lastName, body);
+    let body = &SimpleCurlyFormat
+                    .format(&body.to_string(),
+                        &[&sender.firstName, &sender.lastName],
+                    )
+                    .unwrap_or(std::borrow::Cow::Borrowed("default body"))
+                    .into_owned();
+
     NotificationData {
         username: recipient.username.clone(),
         title: "Armore SOS".to_string(),
-        body,
+        body: body.to_string(),
     }
 }
 
