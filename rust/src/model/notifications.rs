@@ -25,6 +25,7 @@ pub struct NotificationData {
     pub username: String,
     pub title: String,
     pub body: String,
+    pub icon: Option<String>,
 }
 
 #[allow(non_snake_case)]
@@ -40,7 +41,8 @@ impl PushNotification {
             deviceId: device_id,
             data: json!({
                 "title": &data.title,
-                "body": &data.body
+                "body": &data.body,
+                "icon": &data.icon
             }),
         };
         if let Some(prior) = priority {

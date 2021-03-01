@@ -10,7 +10,7 @@ use crate::model::{
 };
 use amiquip::Connection as RabbitConnection;
 use amiquip::Result;
-
+use crate::constants::DEFAULT_NOTIFICATION_ICON;
 use postgres::{error::SqlState, row::Row};
 use rocket_contrib::json::JsonValue;
 use std::time::SystemTime;
@@ -177,6 +177,7 @@ fn build_inv_accepted_notification(
             username: data.creator.clone(),
             title,
             body,
+            icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
         },
         conn,
         None

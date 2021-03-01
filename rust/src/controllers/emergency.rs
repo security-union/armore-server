@@ -7,8 +7,8 @@ use crate::server::validators::{
     datetime::assert_valid_location_historical_start, emergency_user::assert_emergency_user,
     friends::assert_not_friends,
 };
+use dynfmt::{Format, SimpleCurlyFormat};
 use log::error;
-
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
     controllers::telemetry::get_user_details,
@@ -25,6 +25,7 @@ use crate::{
 };
 use amiquip::{Channel, Result};
 use rocket_contrib::json::JsonValue;
+use crate::constants::DEFAULT_NOTIFICATION_ICON;
 
 /// Get the historical location of a user for a given range
 /// Assert if location range is valid, user is in emergency and
@@ -175,8 +176,8 @@ fn build_emergency_email(
             } else {
                 None
             },
-            linkTitle: WEB_URL.to_string(),
-            link: Some(link),
+            link: Some(WEB_URL.to_string()),
+            linkTitle: link,
         },
     }
 }
@@ -192,11 +193,18 @@ fn build_notification_data_from_recipient(
             UserState::Normal => &TranslationIds::NormalModePushNotificationBody,
         })
         .unwrap();
-    let body = format!("{} {} {}", sender.firstName, sender.lastName, body);
+    let body = &SimpleCurlyFormat
+                    .format(&body.to_string(),
+                        &[&sender.firstName, &sender.lastName],
+                    )
+                    .unwrap_or(std::borrow::Cow::Borrowed("default body"))
+                    .into_owned();
+
     NotificationData {
         username: recipient.username.clone(),
-        title: "RescueLink SOS".to_string(),
-        body,
+        title: "Armore SOS".to_string(),
+        body: body.to_string(),
+        icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
     }
 }
 

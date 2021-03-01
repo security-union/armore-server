@@ -22,8 +22,8 @@ lazy_static! {
         (TranslationIds::UserAlreadyInNormal, "Cannot end the emergency"),
         (TranslationIds::UserAlreadyInEmergency, "Cannot report the emergency"),
         (TranslationIds::UserNotInEmergency, "This user is not in an emergency"),
-        (TranslationIds::EmergencyModePushNotificationBody, "is in an EMERGENCY! Please CONFIRM that they are okay!!"),
-        (TranslationIds::NormalModePushNotificationBody, "is no longer in an emergency."),
+        (TranslationIds::EmergencyModePushNotificationBody, "{} {} is in an EMERGENCY! Please CONFIRM that they are okay!"),
+        (TranslationIds::NormalModePushNotificationBody, "{} {} is no longer in an emergency."),
         (TranslationIds::InvalidHistoricalLocationStartTime, "It is not possible to obtain the location from more than a week ago."),
         (TranslationIds::PushNotificationActionView, "Go to app"),
         (TranslationIds::CannotUseOwnInvitation, "You are using an invitation that you've created.\nArmore is designed for you to share your location with the people you love.\nTo achieve this, you must send the invitation (link) to the person you want to follow you.\nIf you have any questions, go to the profile section and ask us anything by email or discord.")
