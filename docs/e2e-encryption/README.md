@@ -22,7 +22,7 @@ https://www.youtube.com/watch?v=GSIDS_lvRv4
 
 ### Functional Requirements.
 
-1. Transparency: As a RescueLink user, I should be able to add and remove friends without knowing about the underlying encryption
+1. Transparency: As an Armore user, I should be able to add and remove friends without knowing about the underlying encryption
    technology.
 
 2. Algorithm to be used to encrypt/decrypt messages: RSA with key length: 4096

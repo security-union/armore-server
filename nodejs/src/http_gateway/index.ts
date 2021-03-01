@@ -954,7 +954,7 @@ export class HTTPGateway implements Service {
             if (s === UserState.Emergency) {
                 // @ts-ignore
                 return {
-                    title: `RescueLink SOS`,
+                    title: `Armore SOS`,
                     body: translateWithFormat(
                         Trans.EmergencyModePushNotificationBody,
                         recipientUserInfo.language,
@@ -963,7 +963,7 @@ export class HTTPGateway implements Service {
                 };
             } else {
                 return {
-                    title: `RescueLink SOS`,
+                    title: `Armore SOS`,
                     body: translateWithFormat(
                         Trans.NormalModePushNotificationBody,
                         recipientUserInfo.language,

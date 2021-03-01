@@ -1,15 +1,15 @@
 openapi: 3.0.2
 
 servers:
-    - description: RescueLink API Prod URL
+    - description: Armore API Prod URL
       url: https://auth.armore.dev
-    - description: RescueLink API Staging URL
+    - description: Armore API Staging URL
       url: https://auth.staging.armore.dev
-    - description: RescueLink API Dev URL
+    - description: Armore API Dev URL
       url: http://localhost:10000
 info:
     version: "1.0.0"
-    title: RescueLink
+    title: Armore
     description: Authentication API
 paths:
     /login:

@@ -1,16 +1,16 @@
 openapi: 3.0.0
 
 servers:
-    - description: RescueLink Message Broker
+    - description: Armore Message Broker
       url: https://api.armore.dev
-    - description: RescueLink Message Broker Staging URL
+    - description: Armore Message Broker Staging URL
       url: https://api.staging.armore.dev
-    - description: RescueLink Message Broker Dev URL
+    - description: Armore Message Broker Dev URL
       url: http://localhost:10001
 
 info:
     version: "1.0.0"
-    title: RescueLink
+    title: Armore
     description: Rest API to exchange messages betweeen devices.
 
 paths:

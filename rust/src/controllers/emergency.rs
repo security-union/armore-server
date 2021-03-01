@@ -195,7 +195,7 @@ fn build_notification_data_from_recipient(
     let body = format!("{} {} {}", sender.firstName, sender.lastName, body);
     NotificationData {
         username: recipient.username.clone(),
-        title: "RescueLink SOS".to_string(),
+        title: "Armore SOS".to_string(),
         body,
     }
 }
