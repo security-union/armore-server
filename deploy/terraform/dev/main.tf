@@ -33,9 +33,9 @@ module "gke" {
   node_pools = [
     {
       name               = "${var.name}-node-pool"
-      machine_type       = "e2-small"
+      machine_type       = "e2-medium"
       min_count          = 1
-      max_count          = 8
+      max_count          = 6
       disk_size_gb       = 30
       disk_type          = "pd-ssd"
       image_type         = "COS"
