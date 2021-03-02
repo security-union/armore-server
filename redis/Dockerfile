@@ -8,12 +8,13 @@ RUN apt-get update && \
         gnupg2
 
 ENV GCSFUSE_REPO=gcsfuse-buster
+ENV GCS_BUCKET=yolo
 
 RUN echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" | tee /etc/apt/sources.list.d/gcsfuse.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 
 RUN apt-get update && \
-    apt-get install gcsfuse && \
+    apt-get install gcsfuse=0.33.0 && \
     apt-get clean all && \
     groupadd fuse && \
     usermod -aG fuse redis && \

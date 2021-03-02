@@ -319,7 +319,9 @@ deployments:
   redis:
     name: redis
     enabled: true
-    env: {}
+    env:
+      - name: GCS_BUCKET
+        value: ""
     image:
       repository: ""
       pullPolicy: Always
@@ -344,6 +346,12 @@ deployments:
       capabilities:
         add:
           - SYS_ADMIN
+    command: ["/bin/sh"]
+    args:
+      [
+        "-c",
+        "mkdir /data; mkdir /redis-data; gcsfuse --implicit-dirs -o nonempty --key-file /secrets/cloudsql/credentials.json armore_redis_telemetry /redis-data;  redis-server /redis.conf",
+      ]
     lifecycle:
       preStop:
         exec:
