@@ -319,7 +319,9 @@ deployments:
   redis:
     name: redis
     enabled: true
-    env: {}
+    env:
+      - name: GCS_BUCKET
+        value: ""
     image:
       repository: ""
       pullPolicy: Always
