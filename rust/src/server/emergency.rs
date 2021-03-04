@@ -3,7 +3,6 @@ use super::validators::friends::assert_not_friends;
 use crate::{
     controllers::emergency::{get_historical_location, update_user_state},
     db::{get_connection, get_pool},
-    messaging::{get_rabbitmq_uri, unlock_channel},
     model::{
         auth::AuthInfo,
         emergency::{UpdateState, UserState},
@@ -12,23 +11,19 @@ use crate::{
         APIResult, Message, Storage,
     },
 };
-use amiquip::Connection as RabbitConnection;
 use rocket::{Rocket, State};
 use rocket_contrib::json::Json;
-use std::sync::{Arc, Mutex};
 
 #[post("/state", format = "application/json", data = "<update_state>")]
 fn update_state(
     auth_info: AuthInfo,
     update_state: Json<UpdateState>,
     storage: State<Storage>,
-    rabbit: State<Arc<Mutex<RabbitConnection>>>,
 ) -> APIResult<Message<UserState>> {
     let new_state = update_state.new_state;
     get_connection(storage)
         .and_then(|mut conn| {
-            let channel = unlock_channel(rabbit)?;
-            update_user_state(&mut conn, &channel, &auth_info.username, &new_state)?;
+            update_user_state(&mut conn, &auth_info.username, &new_state)?;
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(Message { message: new_state }),
@@ -42,13 +37,11 @@ fn update_friend_state(
     auth_info: AuthInfo,
     username: String,
     storage: State<Storage>,
-    rabbit: State<Arc<Mutex<RabbitConnection>>>,
 ) -> APIResult<Message<UserState>> {
     get_connection(storage)
         .and_then(|mut conn| {
-            let channel = unlock_channel(rabbit)?;
             assert_not_friends(&mut conn, &auth_info.username, &username)?;
-            update_user_state(&mut conn, &channel, &username, &UserState::Emergency)?;
+            update_user_state(&mut conn, &username, &UserState::Emergency)?;
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(Message {
@@ -83,8 +76,6 @@ fn get_user_historical_location(
 
 pub fn rocket() -> Rocket {
     let database = get_pool();
-    let rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
-        .expect("Error getting rabbitMq Connection");
     rocket::ignite()
         .mount(
             "/v1/emergency",
@@ -100,5 +91,4 @@ pub fn rocket() -> Rocket {
             redis: None,
             database,
         })
-        .manage(Arc::new(Mutex::new(rabbit_conn)))
 }
