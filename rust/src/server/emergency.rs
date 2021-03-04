@@ -22,7 +22,6 @@ fn update_state(
     auth_info: AuthInfo,
     update_state: Json<UpdateState>,
     storage: State<Storage>,
-    rabbit: State<Arc<Mutex<RabbitConnection>>>,
 ) -> APIResult<Message<UserState>> {
     let new_state = update_state.new_state;
     get_connection(storage)
@@ -42,7 +41,6 @@ fn update_friend_state(
     auth_info: AuthInfo,
     username: String,
     storage: State<Storage>,
-    rabbit: State<Arc<Mutex<RabbitConnection>>>,
 ) -> APIResult<Message<UserState>> {
     get_connection(storage)
         .and_then(|mut conn| {
@@ -83,8 +81,7 @@ fn get_user_historical_location(
 
 pub fn rocket() -> Rocket {
     let database = get_pool();
-    let rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
-        .expect("Error getting rabbitMq Connection");
+;
     rocket::ignite()
         .mount(
             "/v1/emergency",
@@ -100,5 +97,4 @@ pub fn rocket() -> Rocket {
             redis: None,
             database,
         })
-        .manage(Arc::new(Mutex::new(rabbit_conn)))
 }
