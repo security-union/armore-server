@@ -1,3 +1,5 @@
+use crate::constants::DEFAULT_NOTIFICATION_ICON;
+use crate::messaging::get_rabbitmq_uri;
 use crate::model::{
     auth::AuthInfo,
     emergency::UserState,
@@ -7,8 +9,6 @@ use crate::server::validators::{
     datetime::assert_valid_location_historical_start, emergency_user::assert_emergency_user,
     friends::assert_not_friends,
 };
-use dynfmt::{Format, SimpleCurlyFormat};
-use log::error;
 use crate::{
     constants::{CS_PROFILE_IMAGE_PATH, GENERIC_EMAIL_TEMPLATE, WEB_URL},
     controllers::telemetry::get_user_details,
@@ -23,9 +23,11 @@ use crate::{
         PostgresConnection, UserDetails,
     },
 };
-use amiquip::{Channel, Result};
+
+use dynfmt::{SimpleCurlyFormat, Format};
+use amiquip::{Connection as RabbitConnection, Result};
+use log::error;
 use rocket_contrib::json::JsonValue;
-use crate::constants::DEFAULT_NOTIFICATION_ICON;
 
 /// Get the historical location of a user for a given range
 /// Assert if location range is valid, user is in emergency and
@@ -50,12 +52,11 @@ pub fn get_historical_location(
 /// @return APIResult<Message<UserState>>
 pub fn update_user_state(
     conn: &mut PostgresConnection,
-    channel: &Channel,
     username: &String,
     state: &UserState,
 ) -> Result<(), APIInternalError> {
     update_state(conn, username, state).and_then(|_| {
-        send_emergency_notifications(conn, &channel, username, state)
+        send_emergency_notifications(conn, username, state)
             .map_err(|err| {
                 error!(
                     "{}",
@@ -88,7 +89,6 @@ pub fn update_state(
 
 fn send_emergency_notifications(
     conn: &mut PostgresConnection,
-    channel: &Channel,
     username: &String,
     state: &UserState,
 ) -> Result<(), APIInternalError> {
@@ -96,13 +96,20 @@ fn send_emergency_notifications(
         .map_err(APIInternalError::from_db_err)?
         .unwrap();
 
-    get_emergency_connections(conn, username)
+    let values = get_emergency_connections(conn, username)
         .map_err(APIInternalError::from_db_err)
-        .map(|recipients| build_recipients_notifications(conn, recipients, &sender_details, state))
-        .and_then(|values| {
-            send_notification(channel, json!(values).to_string())
-                .map_err(APIInternalError::from_db_err)
-        })
+        .map(|recipients| {
+            build_recipients_notifications(conn, recipients, &sender_details, state)
+        })?;
+
+    let mut rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
+        .expect("Error getting rabbitMq Connection");
+
+    let channel = rabbit_conn
+        .open_channel(None)
+        .map_err(APIInternalError::backend_issue)?;
+
+    send_notification(&channel, json!(values).to_string()).map_err(APIInternalError::from_db_err)
 }
 
 fn build_recipients_notifications(
@@ -194,17 +201,15 @@ fn build_notification_data_from_recipient(
         })
         .unwrap();
     let body = &SimpleCurlyFormat
-                    .format(&body.to_string(),
-                        &[&sender.firstName, &sender.lastName],
-                    )
-                    .unwrap_or(std::borrow::Cow::Borrowed("default body"))
-                    .into_owned();
+        .format(&body.to_string(), &[&sender.firstName, &sender.lastName])
+        .unwrap_or(std::borrow::Cow::Borrowed("default body"))
+        .into_owned();
 
     NotificationData {
         username: recipient.username.clone(),
         title: "Armore SOS".to_string(),
         body: body.to_string(),
-        icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
+        icon: Some(DEFAULT_NOTIFICATION_ICON.to_string()),
     }
 }
 
