@@ -24,8 +24,8 @@ use crate::{
     },
 };
 
-use dynfmt::{SimpleCurlyFormat, Format};
 use amiquip::{Connection as RabbitConnection, Result};
+use dynfmt::{Format, SimpleCurlyFormat};
 use log::error;
 use rocket_contrib::json::JsonValue;
 
@@ -102,14 +102,14 @@ fn send_emergency_notifications(
             build_recipients_notifications(conn, recipients, &sender_details, state)
         })?;
 
-    let mut rabbit_conn = RabbitConnection::insecure_open(&get_rabbitmq_uri())
-        .expect("Error getting rabbitMq Connection");
-
-    let channel = rabbit_conn
-        .open_channel(None)
-        .map_err(APIInternalError::backend_issue)?;
-
-    send_notification(&channel, json!(values).to_string()).map_err(APIInternalError::from_db_err)
+    RabbitConnection::insecure_open(&get_rabbitmq_uri())
+        .and_then(|mut connection| {
+            let channel = connection.open_channel(None)?;
+            let res = send_notification(&channel, json!(values).to_string());
+            let _ = channel.close();
+            res
+        })
+        .map_err(APIInternalError::backend_issue)
 }
 
 fn build_recipients_notifications(
