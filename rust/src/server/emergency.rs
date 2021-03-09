@@ -13,7 +13,6 @@ use crate::{
 };
 use rocket::{Rocket, State};
 use rocket_contrib::json::Json;
-use std::sync::{Arc, Mutex};
 
 #[post("/state", format = "application/json", data = "<update_state>")]
 fn update_state(
@@ -77,7 +76,6 @@ fn get_user_historical_location(
 
 pub fn rocket() -> Rocket {
     let database = get_pool();
-    let guard = logger::init();
 
     rocket::ignite()
         .mount(
