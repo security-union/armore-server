@@ -30,6 +30,8 @@ fn main() {
                 ..Default::default()
             }),
         );
+    } else {
+        debug!("SENTRY_DSN env var not found so not using sentry.");
     }
 
     let redis_url = env::var("REDIS_URL").expect("REDIS_URL must be set");
