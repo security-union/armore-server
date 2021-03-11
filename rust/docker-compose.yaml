@@ -19,6 +19,7 @@ services:
       - RABBITMQ_VHOST=staging
       - PG_URL=postgres://postgres:docker@postgres:5432/armore?sslmode=disable
       - REDIS_URL=redis://redis
+      - SENTRY_DSN=https://17152cbc5f304cbd9608e3e884401486@o478160.ingest.sentry.io/5520256
     volumes:
       - type: bind
         source: ../dbmate/db

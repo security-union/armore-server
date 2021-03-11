@@ -197,7 +197,6 @@ pub fn rocket() -> Rocket {
         redis: Some(redis),
         database,
     };
-
     rocket::ignite()
         .mount(
             "/v1",

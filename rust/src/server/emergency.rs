@@ -76,6 +76,7 @@ fn get_user_historical_location(
 
 pub fn rocket() -> Rocket {
     let database = get_pool();
+
     rocket::ignite()
         .mount(
             "/v1/emergency",

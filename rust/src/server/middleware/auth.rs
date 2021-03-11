@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use jsonwebtoken::{dangerous_insecure_decode, decode, Algorithm, DecodingKey, Validation};
 use rocket::http::Status;
 /**
@@ -14,6 +16,7 @@ use rocket::http::Status;
  */
 use rocket::request::{FromRequest, Outcome};
 use rocket::{request, Request, State};
+use serde_json::Value;
 
 use crate::constants::ASIMOV_LIVES;
 use crate::controllers::telemetry::{get_public_key, get_user_details};
@@ -22,6 +25,7 @@ use crate::model::{
     responses::{APIJsonResponse, Errors::APIError},
     Storage,
 };
+use rocket_sentry_logger as logger;
 
 impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
     type Error = APIJsonResponse;
@@ -117,13 +121,16 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
 
         return match token_message {
             Ok(token_data) => {
-                let language =
+                let user_details =
                     get_user_details(&token_data.claims.username, &mut pool.get().unwrap())
                         .ok()
-                        .flatten()
-                        .map(|user_details| user_details.language)
-                        .flatten()
-                        .unwrap_or("en".to_string());
+                        .flatten();
+
+                let language: String = user_details.map_or("en".into(), |details| {
+                    details.language.unwrap_or("en".into())
+                });
+
+                set_sentry_user(&token_data.claims);
                 Outcome::Success(AuthInfo {
                     key: token.to_string(),
                     username: token_data.claims.username,
@@ -143,4 +150,19 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
             )),
         };
     }
+}
+
+fn set_sentry_user(claims: &Claims) {
+    let user_data: BTreeMap<String, Value> = vec![(
+        "device_id".into(),
+        serde_json::json!(claims.deviceId.clone()),
+    )]
+    .into_iter()
+    .collect();
+    let user = logger::User {
+        username: Some(claims.username.clone()),
+        other: user_data,
+        ..Default::default()
+    };
+    logger::set_user(user);
 }

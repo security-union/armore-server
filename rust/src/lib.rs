@@ -21,6 +21,7 @@ extern crate rocket_contrib;
 #[macro_use(lazy_static)]
 extern crate lazy_static;
 extern crate redis;
+extern crate rocket_sentry_logger;
 
 pub mod constants;
 pub mod controllers;
