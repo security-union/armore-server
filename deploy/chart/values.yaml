@@ -98,6 +98,8 @@ deployments:
         value: "critical"
       - name: RUST_LOG
         value: "info"
+      - name: SENTRY_DSN
+        value:
     ports:
       - name: http
         containerPort: 8000
@@ -134,6 +136,8 @@ deployments:
         value: "8001"
       - name: RUST_LOG
         value: "info"
+      - name: SENTRY_DSN
+        value:
     ports:
       - name: http
         containerPort: 8001
@@ -170,6 +174,8 @@ deployments:
         value: "8002"
       - name: RUST_LOG
         value: "info"
+      - name: SENTRY_DSN
+        value:
     ports:
       - name: http
         containerPort: 8002
@@ -276,6 +282,8 @@ deployments:
         value: "4320"
       - name: POLL_PERIOD_SECONDS
         value: "1800"
+      - name: SENTRY_DSN
+        value:
     ports:
       - name: http
         containerPort: 8000
