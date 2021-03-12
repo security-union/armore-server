@@ -21,10 +21,18 @@ Nanny is a program that has the following jobs:
 fn main() {
     env_logger::init();
     info!("Starting");
-    let _guard = logger::init(Some(InitConfig {
-        service: Some("Nanny"),
-        ..Default::default()
-    }));
+    let dsn = std::env::var("SENTRY_DSN");
+    if let Ok(dsn) = dsn {
+        let _guard = logger::init(
+            dsn,
+            Some(InitConfig {
+                service: Some("Nanny"),
+                ..Default::default()
+            }),
+        );
+    } else {
+        debug!("SENTRY_DSN env var not found so not using sentry.");
+    }
 
     let redis_url = env::var("REDIS_URL").expect("REDIS_URL must be set");
 

@@ -2224,9 +2224,9 @@ dependencies = [
 
 [[package]]
 name = "rocket_sentry_logger"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6af079dfc634e57f9521dbb2723ca87b4598e413771ab04311b12ad1444d657"
+checksum = "c7f0e1ceba0b93deee5a15e9e0a350fa574542579d984c7c349373af95d152f6"
 dependencies = [
  "rocket",
  "sentry",
