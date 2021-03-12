@@ -1,6 +1,4 @@
-#[macro_use]
-extern crate log;
-
+use log::debug;
 use lib::server::emergency::rocket;
 use lib::server::middleware::logging;
 use rocket_sentry_logger::{self as logger, InitConfig};
