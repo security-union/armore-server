@@ -3,27 +3,9 @@ import {
     AccessType,
     DBClientWithConnection,
     Device,
-    NotificationRecipient,
     UserDetails,
-    UserInfo,
     UserState,
 } from "../types";
-import { groupBy, head, mapValues } from "lodash";
-
-interface SocialConnections {
-    followers: Record<string, any>;
-    following: Record<string, any>;
-}
-
-const mapRowToUser = (row: any): UserInfo => ({
-    username: row.username,
-    email: row.email ? row.email : undefined,
-    phoneNumber: row.phone_number ? row.phone_number : undefined,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    picture: row.picture ? row.picture : undefined,
-    language: row.language,
-});
 
 /**
  * Returns follower devices to notified given the user state.
@@ -61,7 +43,3 @@ export const getDevicesToBeNotified = async (
         },
     );
 
-interface RemoveFollowerRequest {
-    usernameFollower: string;
-    username: string;
-}
