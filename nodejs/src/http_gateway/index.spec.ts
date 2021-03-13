@@ -14,36 +14,24 @@
 import request from "supertest";
 import getPort from "get-port";
 import omit from "lodash/omit";
-import amqp from "amqplib";
-import isEqual from "lodash/isEqual";
 
 import { ClientConfig } from "pg";
 import {
-    APP_STORE_URL,
     JWT_HEADER_TOKEN,
     PG_URL,
-    PLAY_STORE_URL,
     RABBIT_MQ_URL_WITH_CREDS,
 } from "../common/constants";
 import { HTTPGateway } from "./index";
 import { dbmate_rebuild } from "../common/dbmate";
-import { withDB } from "../common/db/db";
-import { AccessType, DBClientWithConnection, InvitationType, UserState } from "../common/types";
+import { AccessType, InvitationType } from "../common/types";
 import { createGeofence } from "../common/db/geofences";
-import { RabbitClient } from "../common/rabbit-helpers";
-import { notificationsExchange } from "../common/rabbit-constants";
-import { waitForCondition } from "../common/test_utils";
 import {
     generateJwtTokenHelper,
     MOCK_PRIVATE_KEY,
     MOCK_PUBLIC_KEY,
 } from "../common/authentication";
 import {
-    registerWithEmail,
-    registerDevice,
     registerPublicKey2,
-    updateUserLanguage,
-    updateUserDetails,
 } from "../common/db/authentication";
 
 export const removeFields = (object: any, paths: string[]): any => {
@@ -59,16 +47,6 @@ export const removeFields = (object: any, paths: string[]): any => {
         return returnObject;
     }
 };
-
-const removeIdsAndStamps = (object: any) =>
-    removeFields(object, [
-        "creationTimestamp",
-        "creation_timestamp",
-        "updateTimestamp",
-        "update_timestamp",
-        "timestamp",
-        "id",
-    ]);
 
 const storageOptions = {
     bucketName: "",
