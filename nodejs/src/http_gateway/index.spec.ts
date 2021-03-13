@@ -27,11 +27,6 @@ import {
 } from "../common/constants";
 import { HTTPGateway } from "./index";
 import { dbmate_rebuild } from "../common/dbmate";
-import {
-    acceptFollowerInvitation,
-    createInvitation,
-    getInvitations,
-} from "../common/db/invitations";
 import { withDB } from "../common/db/db";
 import { AccessType, DBClientWithConnection, InvitationType, UserState } from "../common/types";
 import { createGeofence } from "../common/db/geofences";

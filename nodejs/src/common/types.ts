@@ -82,6 +82,49 @@ export interface ValidateInvitation<A> {
     invitation: EmailInvitationRequest<A> | PhoneInvitationRequest<A>;
 }
 
+export enum InvitationType {
+    Follower = "follower",
+}
+
+export enum AccessType {
+    EmergencyOnly = "EmergencyOnly",
+    Permanent = "Permanent",
+}
+
+export enum UserState {
+    Emergency = "Emergency",
+    Normal = "Normal",
+}
+
+export interface FollowerInvitation {
+    accessType: AccessType;
+    isEmergencyContact: boolean;
+}
+
+interface BasePendingInvitation<A> {
+    creatorUsername: string;
+    creator: UserInfo;
+    status: string;
+    invitation: A;
+    type: string;
+    creationTimestamp: string;
+    updateTimestamp: string;
+    id: string;
+}
+
+export interface EmailPendingInvitation<A> extends BasePendingInvitation<A> {
+    targetEmail: string;
+}
+
+export interface PhonePendingInvitation<A> extends BasePendingInvitation<A> {
+    targetPhoneNumber: string;
+}
+
+export interface GetInvitationsResponse<A> {
+    sent: (EmailPendingInvitation<A> | PhonePendingInvitation<A>)[];
+    received: (EmailPendingInvitation<A> | PhonePendingInvitation<A>)[];
+}
+
 export interface Device {
     username: string;
     deviceId: string;
