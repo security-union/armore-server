@@ -12,7 +12,7 @@
  */
 
 import { QueryResult } from "pg";
-import { GetInvitationsResponse, GetGeofencesResponse, Geofence } from "../types";
+import { GetGeofencesResponse, Geofence } from "../types";
 
 export const mapDBDeviceToJSON = (r: any) => ({
     deviceId: r.device_id,
@@ -49,39 +49,6 @@ export const mapSharedDevicesToJSON = ({
         calendarAccess: r.permissions.calendarAccess,
         permanentAccess: r.permissions.permanentAccess,
     }));
-};
-
-const mapInvitationToJSON = (row: any, devicesMap: any, usersMap: any) => ({
-    creatorUsername: row.creator_username,
-    creator: usersMap[row.creator_username],
-    targetEmail: row.target_email ? row.target_email : undefined,
-    targetPhoneNumber: row.target_phone_number ? row.target_phone_number : undefined,
-    status: row.status,
-    invitation: {
-        ...row.invitation,
-        device: devicesMap[row.invitation.deviceId],
-    },
-    type: row.type,
-    creationTimestamp: row.creation_timestamp,
-    updateTimestamp: row.update_timestamp,
-    id: row.id,
-});
-
-export const mapInvitationsToJSON = ({
-    sent,
-    received,
-    devicesMap,
-    usersMap,
-}: {
-    sent: QueryResult;
-    received: QueryResult;
-    devicesMap: any;
-    usersMap: any;
-}): GetInvitationsResponse<any> => {
-    return {
-        sent: sent.rows.map((row) => mapInvitationToJSON(row, devicesMap, usersMap)),
-        received: received.rows.map((row) => mapInvitationToJSON(row, devicesMap, usersMap)),
-    };
 };
 
 export const mapGeofenceToJSON = (row: any, state: Boolean): Geofence => ({
