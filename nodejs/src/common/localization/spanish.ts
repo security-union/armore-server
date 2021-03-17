@@ -65,7 +65,7 @@ const spanish: Record<Trans, string> = {
     [Trans.VerificationFailure]:
         "No se pudo verificar la cuenta, por favor, envíe un código nuevo.",
     [Trans.VerificationCreatedSuccessfully]: "Solicitud de verificación exitosa",
-    [Trans.SmsVerificationBody]: "Su código de verificación de Armore es: %s\n%s",
+    [Trans.SmsVerificationBody]: "Código de Armore es: %s\n%s",
 };
 
 export default spanish;
