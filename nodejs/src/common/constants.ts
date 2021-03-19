@@ -122,6 +122,12 @@ export const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
 export const TWILIO_NUMBER = process.env.TWILIO_NUMBER || "";
 
 /**
+ * 
+ */
+export const LABS_MOBILE_USERNAME = process.env.LABS_MOBILE_USERNAME || "";
+export const LABS_MOBILE_PASSWORD = process.env.LABS_MOBILE_PASSWORD || "";
+
+/**
  * App store and Play store links
  */
 export const APP_STORE_URL = "https://apps.apple.com/us/app/id1515585896";
