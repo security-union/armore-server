@@ -198,6 +198,7 @@ fn test_access_to_invalid_invitation() {
 #[test]
 fn test_accept_invitation() {
     dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
     insert_mock_public_key("coche", MOCK_PUBLIC_KEY);
     let token = create_token("coche", "coche_iphone").unwrap();
 
@@ -213,7 +214,7 @@ fn test_accept_invitation() {
 
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(
-        r#"{"success":true,"result":{"message":"Ok"}}"#,
+        r#"{"success":true,"result":{"message":"Ok","username":"dario","publicKey":"MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA6lORI0goLg5HUlkcnnAO\nplNP9RF6QfHQ3EyS8aBEkxYVtQhvrG+cIN0X5ws48wqsCm3/fCQtwPghuDuCXRG8\nrJTxWr5eUOy49HATRMHIdWSSG8sdz2SH//5lDu9u6u6QtUflYPEmNXCwZAzhhaWs\nDhqYkBIbNKcCnspzI/itw7znaKdfSNQvXYWuT7LvDQAjorP+JJfy8JCQzHweT52F\nBU/By9KOl6XyeOqwPc4gcKBj72KWSczwqhM0fxAFaKc/xSRxMYbKCPPGXq1TqS1l\nxHLNHqMBvewxoM6eYHFvO5jekbLbdObh+irwwx1HlG24lYwGTc/7bDBkqMWTrvg+\nVE4oCweIRi93pW21MLxUIZeH7G4gmPutwgY6gaZEYoKY9gvlupGU5TDZvF5Ny69F\nrs3OJF4m9Lp7IQKdOCvnXnug6XB67vSc3a13kDygkTTfBVT8gdkb0yGkyhGwG2VA\n9TGyxGgYFSVHHFW6vPl65b0ksLiED5twulJ4kzb4trEaayrqvYMgoNnq967RuOcp\nnNQ885Uit5HTfNaU8/aRWnkDy/ItZCwzkABkP0GNLAKLKZ6hrtu5gHeVqi1xTvXx\npai+Emj+NmxkhpPsWFqCQznnLQ/BNBhQn/EtMU03W3Q6nA0QO1o37w8b/689dWwV\ncMTE2BCIg/sAjsqQ8I9zEskCAwEAAQ=="}}"#,
         &response.body_string().unwrap()
     );
 }
@@ -273,6 +274,7 @@ fn test_accept_accepted_invitation() {
 #[test]
 fn test_accept_already_friends() {
     dbmate_rebuild();
+    insert_mock_public_key("dario", MOCK_PUBLIC_KEY);
     insert_mock_public_key("coche", MOCK_PUBLIC_KEY);
     let token = create_token("coche", "coche_iphone").unwrap();
 

@@ -10,7 +10,7 @@ use crate::{
         auth::AuthInfo,
         invitations::{LinkActionData, LinkCreationData},
         requests::InvitationRequest,
-        responses::{APIJsonResponse, APIResponse, InvitationResponse},
+        responses::{APIJsonResponse, APIResponse, AcceptInvitationResponse, CreateInvitationResponse},
         APIResult, Message, Storage,
     },
 };
@@ -26,7 +26,7 @@ fn create(
     invitation_req: Json<InvitationRequest>,
     auth_info: AuthInfo,
     state: State<Storage>,
-) -> APIResult<InvitationResponse> {
+) -> APIResult<CreateInvitationResponse> {
     // Get the basic data to create a new invitation_link instance
     let data = LinkCreationData::new(
         Uuid::new_v4().to_string(),
@@ -38,7 +38,7 @@ fn create(
             let link = create_invitation(conn, data)?;
             Ok(Json(APIResponse {
                 success: true,
-                result: Some(InvitationResponse { link }),
+                result: Some(CreateInvitationResponse { link }),
             }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
@@ -66,7 +66,7 @@ fn reject(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
 }
 
 #[post("/<id>/accept")]
-fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<Message<String>> {
+fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<AcceptInvitationResponse> {
     let data = LinkActionData {
         uuid: id.clone(),
         username: auth_info.username.clone(),
@@ -75,16 +75,14 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
     get_connection(state)
         .and_then(|mut conn| {
             assert_valid_invitation(&mut conn, &data)?;
-            accept_invitation(&mut conn, &data)?;
+            let res = accept_invitation(&mut conn, &data)?;
 
             let _ = notify_accepted(&mut conn, &data)
                 .map_err(|w| w.log_err("Error sending notification"));
 
             Ok(Json(APIResponse {
                 success: true,
-                result: Some(Message {
-                    message: "Ok".to_string(),
-                }),
+                result: Some(res),
             }))
         })
         .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))

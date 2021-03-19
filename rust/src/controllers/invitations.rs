@@ -6,6 +6,7 @@ use crate::model::{
     invitations::{InvitationState, LinkActionData, LinkCreationData},
     notifications::{AcceptedNotificationData, NotificationData},
     responses::Errors::APIInternalError,
+    responses::AcceptInvitationResponse,
     PostgresConnection,
 };
 use amiquip::Connection as RabbitConnection;
@@ -47,20 +48,29 @@ pub fn reject_invitation(
 pub fn accept_invitation(
     conn: &mut PostgresConnection,
     data: &LinkActionData,
-) -> Result<(), APIInternalError> {
+) -> Result<AcceptInvitationResponse, APIInternalError> {
     transaction(conn, |ts| {
         ts.execute(
             "UPDATE link_invitations SET state = $1, recipient_username = $2 WHERE id = $3",
             &[&InvitationState::ACCEPTED, &data.username, &data.uuid],
         )?;
-        let row = ts.query_one(
+        let invite_row = ts.query_one(
             "SELECT * FROM link_invitations WHERE id = $1",
             &[&data.uuid],
         )?;
-        let user1: String = row.get("creator_username");
-        let user2: String = row.get("recipient_username");
+        let user1: String = invite_row.get("creator_username");
+        let user2: String = invite_row.get("recipient_username");
+        let pk_row = ts.query_one(
+            "SELECT public_key FROM users_identity WHERE username = $1",
+            &[&user1],
+        )?;
+        let pk: String = pk_row.get("public_key");
         ts.execute("call add_friend($1, $2)", &[&user1, &user2])?;
-        Ok(())
+        Ok(AcceptInvitationResponse{
+            message: String::from("Ok"),
+            username: user1,
+            publicKey: pk
+        })
     })
     .map_err(|err| {
         let res = err.code();
