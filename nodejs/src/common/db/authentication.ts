@@ -342,7 +342,13 @@ export const getEmail = async ({ username }: Username, database: DBClient) =>
 
 export const associateUserAndPhone = async ({ username, phone_number}: { username: string, phone_number: string}, database: DBClient) {
     withDB(database).then(async (d: DBClientWithConnection) => {
-
+        const createUser = await d.connection.query(
+            `insert into users (username,  email) values ($1, $2)`,
+            [username, email],
+        );
+        if (createUser.rowCount !== 1) {
+            throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
+        }
     });        
 }
 
