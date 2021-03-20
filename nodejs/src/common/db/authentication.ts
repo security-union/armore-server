@@ -340,6 +340,12 @@ export const getEmail = async ({ username }: Username, database: DBClient) =>
         return result.rowCount === 1 ? result.rows[0].email : undefined;
     });
 
+export const associateUserAndPhone = async ({ username, phone_number}: { username: string, phone_number: string}, database: DBClient) {
+    withDB(database).then(async (d: DBClientWithConnection) => {
+
+    });        
+}
+
 export const getUsername = async (emailOrPhone: String, database: DBClient): Promise<Username> =>
     withDB(database).then(async (d: DBClientWithConnection) => {
         const result = await d.connection.query(
@@ -435,23 +441,39 @@ export const createSmsVerificationRequest = async (
         },
     );
 
+interface UserVerification {
+    email: string | undefined
+
+    phone_number: string | undefined
+
+    username: string
+}
+
 export const validateVerificationRequest = async (
     email: string,
     code: string,
     database: DBClient,
 ) =>
     withDB(database).then(
-        async (d: DBClientWithConnection): Promise<Boolean> => {
+        async (d: DBClientWithConnection): Promise<UserVerification> => {
             const verificationCodeUpdate = await d.connection.query(
                 `UPDATE users_verification
                 SET used = true, updated_timestamp = NOW()
                 WHERE (email = $1 OR phone_number = $1)
                   AND verification_code = $2
                   AND expiration_timestamp > NOW()
-                  AND used = false`,
+                  AND used = false
+                  RETURNING users_verification.*`,
                 [email, code],
             );
-            return verificationCodeUpdate.rowCount > 0;
+            if (verificationCodeUpdate.rowCount < 1) {
+                throw new LocalizableError(
+                    Trans.VerificationFailure,
+                    401,
+                    "verification failure",
+                );
+            }
+            return verificationCodeUpdate.rows.reduce((acc, row) => row, {});
         },
     );
 

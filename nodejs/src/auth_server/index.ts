@@ -467,19 +467,18 @@ export class AuthServer implements Service {
                 deletePreviousDevice,
             } = req.body;
             const userDetails = await withSerializableTransaction(this.pgClient, async (cc) => {
-                const validated = await validateVerificationRequest(
+                const { username, phone_number, email} = await validateVerificationRequest(
                     sanitizedEmailOrPhone,
                     code,
                     this.pgClient,
                 );
-                if (!validated) {
-                    throw new LocalizableError(
-                        Trans.VerificationFailure,
-                        401,
-                        "verification failure",
-                    );
+
+                if (phone_number) {
+                    await associateUserAndPhone({ username, phone_number}, this.pgClient);
+                } else if (email) {
+                    await associateUserAndEmail({ username, email}, this.pgClient);
                 }
-                const { username } = await getUsername(sanitizedEmailOrPhone, this.pgClient);
+                
                 if (deletePreviousDevice) {
                     await deletePreviousDevices({ username }, this.pgClient);
                     await unassociateDeviceFromOtherUsers({ deviceId }, this.pgClient);
