@@ -5,7 +5,6 @@ use std::thread;
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
 use lib::controllers::telemetry::force_refresh_telemetry_internal;
 use lib::db::get_pool;
-use lib::model::auth::AuthInfo;
 use rocket_sentry_logger::{self as logger, InitConfig};
 
 use log::{debug, error, info};
