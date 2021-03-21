@@ -146,8 +146,17 @@ fn force_refresh_telemetry(
         }));
     }
 
-    force_refresh_telemetry_internal(&mut client, recipient_username, &auth_info)
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+    let response = force_refresh_telemetry_internal(
+        &mut client,
+        recipient_username,
+        auth_info.username.clone(),
+    )
+    .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
+
+    Ok(Json(APIResponse {
+        success: response.commandStatus != CommandState::Error,
+        result: response,
+    }))
 }
 
 #[allow(unused_must_use)]

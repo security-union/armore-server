@@ -13,13 +13,10 @@
  *
  *
  */
-use std::env;
-
+use crate::constants::{DATE_FORMAT, NOTIFICATIONS_EXCHANGE, NOTIFICATIONS_ROUTING_KEY};
 use crate::controllers::devices::get_subscriber_device_ids;
 use crate::model::{
-    devices::OS,
     notifications::{NotificationData, PushNotification},
-    responses::Errors::APIInternalError,
     telemetry::{TelemetryUpdate, TelemetryWebsocketUpdate},
 };
 use amiquip::{
@@ -29,15 +26,9 @@ use chrono::Utc;
 use postgres::NoTls;
 use r2d2::PooledConnection;
 use r2d2_postgres::PostgresConnectionManager;
-
-use rocket::State;
-use std::sync::{Arc, Mutex};
-
-use crate::constants::DATE_FORMAT;
+use std::env;
 
 static WEBSOCKET_EXCHANGE: &str = "websocket.exchange";
-pub static NOTIFICATIONS_EXCHANGE: &str = "notifications.exchange";
-pub static NOTIFICATIONS_ROUTING_KEY: &str = "notifications";
 
 pub fn get_rabbitmq_uri() -> String {
     let rabbitmq_user = env::var("RABBITMQ_USER").expect("RABBITMQ_USER must be set");
@@ -49,13 +40,6 @@ pub fn get_rabbitmq_uri() -> String {
         "amqp://{}:{}@{}/{}",
         rabbitmq_user, rabbitmq_pass, rabbitmq_host, rabbitmq_vhost
     )
-}
-
-pub fn unlock_channel(state: State<Arc<Mutex<Connection>>>) -> Result<Channel, APIInternalError> {
-    let mut guard = state.lock().expect("Rabbit Connection was poisoned");
-    guard
-        .open_channel(None)
-        .map_err(APIInternalError::backend_issue)
 }
 
 pub fn send_ws_message(
@@ -116,89 +100,4 @@ pub fn build_user_push_notifications(
             .map(|(device_id, _os)| PushNotification::build(device_id, data, priority))
             .collect()
     })
-}
-
-pub fn create_force_refresh_json(
-    device_id: &String,
-    os: &OS,
-    correlation_id: &String,
-    username: &String,
-) -> String {
-    match os {
-        OS::Android => format!(
-            r#"{{
-               "deviceId": "{}",
-               "data": {{
-                 "priority": "high",
-                 "custom": {{
-                     "data": {{
-                         "command": "RefreshTelemetry",
-                         "correlationId": "{}",
-                         "username": "{}",
-                         "aps": {{
-                           "content-available": 1
-                         }}
-                     }}
-                 }}
-               }}
-            }}"#,
-            &device_id, &correlation_id, &username
-        ),
-        _ => format!(
-            r#"{{
-               "deviceId": "{}",
-               "data": {{
-                 "contentAvailable": true,
-                 "silent": true,
-                 "payload": {{
-                     "command": "RefreshTelemetry",
-                     "correlationId": "{}",
-                     "username": "{}"
-                 }}
-               }}
-            }}"#,
-            &device_id, &correlation_id, &username
-        ),
-    }
-}
-
-pub fn send_force_refresh(
-    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
-    connection: &mut Connection,
-    username: &String,
-    username_recipient: &String,
-    correlation_id: &String,
-) -> RabbitResult<()> {
-    let channel = connection.open_channel(None)?;
-
-    let exchange = channel.exchange_declare(
-        ExchangeType::Direct,
-        NOTIFICATIONS_EXCHANGE,
-        ExchangeDeclareOptions {
-            durable: false,
-            auto_delete: false,
-            internal: false,
-            arguments: Default::default(),
-        },
-    )?;
-
-    debug!("Publishing to exchange {}", exchange.name());
-    let notifications: Option<String> = get_subscriber_device_ids(client, username_recipient)
-        .map(|devices| {
-            return devices
-                .into_iter()
-                .map(|(device_id, os)| {
-                    create_force_refresh_json(&device_id, &os, &correlation_id, &username)
-                })
-                .collect();
-        })
-        .map(|notifications: Vec<String>| notifications.join(","))
-        .map(|notifications: String| vec!["[", notifications.as_str(), "]"].join(""));
-    if notifications.is_some() {
-        return exchange.publish(Publish::new(
-            notifications.unwrap().as_bytes(),
-            NOTIFICATIONS_ROUTING_KEY,
-        ));
-    }
-    Ok(())
 }

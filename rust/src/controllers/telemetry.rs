@@ -1,11 +1,3 @@
-use amiquip::Connection as RabbitConnection;
-use chrono::{Local, Utc};
-use postgres::error::Error;
-use postgres::{NoTls, Row};
-use r2d2::{Pool, PooledConnection};
-use r2d2_postgres::PostgresConnectionManager;
-use redis::Commands;
-use rocket_contrib::json::Json;
 /**
  * Copyright [2020] [Dario Alessandro Lencina Talarico]
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,21 +10,34 @@ use rocket_contrib::json::Json;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-use std::collections::HashMap;
-use uuid::Uuid;
-
 use crate::constants::{DATE_FORMAT, NANNY_RETRY_HASH_MAP, TELEMETRY_LAST_SEEN_SET};
+use crate::constants::{NOTIFICATIONS_EXCHANGE, NOTIFICATIONS_ROUTING_KEY};
+use crate::controllers::devices::get_subscriber_device_ids;
 use crate::lang::TranslationIds;
-use crate::messaging::{get_rabbitmq_uri, send_force_refresh};
+use crate::messaging::get_rabbitmq_uri;
 use crate::model::{
     auth::AuthInfo,
+    devices::OS,
     devices::{AppState::UNKNOWN, BatteryState, ChargingState},
     emergency::{AccessType, UserState},
     requests::TelemetryRequest,
-    responses::{APIResponse, CommandResponse, Errors::APIInternalError, TelemetryResponse},
+    responses::{CommandResponse, Errors::APIInternalError, TelemetryResponse},
     telemetry::{Command, CommandState, Connection, FollowerKey, Telemetry},
     UserDetails,
 };
+use amiquip::{
+    Connection as RabbitConnection, ExchangeDeclareOptions, ExchangeType, Publish,
+    Result as RabbitResult,
+};
+use chrono::{Local, Utc};
+use postgres::error::Error;
+use postgres::{NoTls, Row};
+use r2d2::{Pool, PooledConnection};
+use r2d2_postgres::PostgresConnectionManager;
+use redis::Commands;
+use rocket_contrib::json::Json;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub fn get_public_key(
     username: &String,
@@ -414,15 +419,30 @@ pub fn username_has_follower(
     Ok(!rows.is_empty())
 }
 
+pub fn sync_users_location(
+    conn: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
+    user1: String,
+    user2: String,
+) -> Result<(), APIInternalError> {
+    let r1 = force_refresh_telemetry_internal(conn, user1.clone(), user2.clone())?;
+    let r2 = force_refresh_telemetry_internal(conn, user2, user1)?;
+
+    if r1.commandStatus == CommandState::Error || r2.commandStatus == CommandState::Error {
+        error!("{}", r1.error.unwrap());
+    }
+
+    Ok(())
+}
+
 pub fn force_refresh_telemetry_internal(
     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
     recipient_username: String,
-    auth_info: &AuthInfo,
-) -> Result<Json<APIResponse<CommandResponse>>, APIInternalError> {
+    sender_username: String,
+) -> Result<CommandResponse, APIInternalError> {
     // 1. Insert command into commands database.
     let correlation_id = create_command(
         client,
-        &auth_info.username,
+        &sender_username,
         &recipient_username,
         &Command::RefreshTelemetry,
     )?;
@@ -434,35 +454,114 @@ pub fn force_refresh_telemetry_internal(
             let _ = send_force_refresh(
                 client,
                 &mut conn,
-                &auth_info.username,
+                &sender_username,
                 &recipient_username,
                 &correlation_id,
             );
             return conn.close();
         });
-    if send_result.is_some() {
-        // 4. Return with generic ok message including the request id.
-        Ok(Json(APIResponse {
-            success: true,
-            result: CommandResponse {
-                correlation_id: Option::Some(correlation_id),
-                commandStatus: CommandState::Created,
-                error: Option::None,
-            },
-        }))
-    } else {
-        // 5. If we fail to send the message, then just close the command.
-        let error = close_command(client, &CommandState::Error, &correlation_id).err();
-        if error.is_some() {
-            error!("error closing the command {}", error.unwrap())
-        }
-        Ok(Json(APIResponse {
-            success: false,
-            result: CommandResponse {
+    match send_result {
+        Some(_) => Ok(CommandResponse {
+            correlation_id: Option::Some(correlation_id),
+            commandStatus: CommandState::Created,
+            error: Option::None,
+        }),
+        None => {
+            let res = close_command(client, &CommandState::Error, &correlation_id);
+            if let Err(error) = res {
+                error!("error closing the command {}", error)
+            }
+            Ok(CommandResponse {
                 correlation_id: Option::Some(correlation_id),
                 commandStatus: CommandState::Error,
                 error: Option::Some("Failed to send the notification".to_string()),
-            },
-        }))
+            })
+        }
+    }
+}
+
+pub fn send_force_refresh(
+    client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
+    connection: &mut RabbitConnection,
+    username: &String,
+    username_recipient: &String,
+    correlation_id: &String,
+) -> RabbitResult<()> {
+    let channel = connection.open_channel(None)?;
+
+    let exchange = channel.exchange_declare(
+        ExchangeType::Direct,
+        NOTIFICATIONS_EXCHANGE,
+        ExchangeDeclareOptions {
+            durable: false,
+            auto_delete: false,
+            internal: false,
+            arguments: Default::default(),
+        },
+    )?;
+
+    debug!("Publishing to exchange {}", exchange.name());
+    let notifications: Option<String> = get_subscriber_device_ids(client, username_recipient)
+        .map(|devices| {
+            return devices
+                .into_iter()
+                .map(|(device_id, os)| {
+                    create_force_refresh_json(&device_id, &os, &correlation_id, &username)
+                })
+                .collect();
+        })
+        .map(|notifications: Vec<String>| notifications.join(","))
+        .map(|notifications: String| vec!["[", notifications.as_str(), "]"].join(""));
+
+    if notifications.is_some() {
+        return exchange.publish(Publish::new(
+            notifications.unwrap().as_bytes(),
+            NOTIFICATIONS_ROUTING_KEY,
+        ));
+    }
+    Ok(())
+}
+
+pub fn create_force_refresh_json(
+    device_id: &String,
+    os: &OS,
+    correlation_id: &String,
+    username: &String,
+) -> String {
+    match os {
+        OS::Android => format!(
+            r#"{{
+               "deviceId": "{}",
+               "data": {{
+                 "priority": "high",
+                 "custom": {{
+                     "data": {{
+                         "command": "RefreshTelemetry",
+                         "correlationId": "{}",
+                         "username": "{}",
+                         "aps": {{
+                           "content-available": 1
+                         }}
+                     }}
+                 }}
+               }}
+            }}"#,
+            &device_id, &correlation_id, &username
+        ),
+        _ => format!(
+            r#"{{
+               "deviceId": "{}",
+               "data": {{
+                 "contentAvailable": true,
+                 "silent": true,
+                 "payload": {{
+                     "command": "RefreshTelemetry",
+                     "correlationId": "{}",
+                     "username": "{}"
+                 }}
+               }}
+            }}"#,
+            &device_id, &correlation_id, &username
+        ),
     }
 }

@@ -5,6 +5,7 @@ use crate::controllers::invitations::{
     reject_invitation, remove_friends,
 };
 use crate::{
+    controllers::telemetry::sync_users_location,
     db::{get_connection, get_pool},
     model::{
         auth::AuthInfo,
@@ -79,6 +80,10 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
 
             let _ = notify_accepted(&mut conn, &data)
                 .map_err(|w| w.log_err("Error sending notification"));
+
+            let inv_creator_data = get_invitation_creator(&mut conn, &id)?;
+            let creator_username: String = inv_creator_data["username"].as_str().unwrap().into();
+            sync_users_location(&mut conn, auth_info.username.clone(), creator_username)?;
 
             Ok(Json(APIResponse {
                 success: true,
