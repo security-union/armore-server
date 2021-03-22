@@ -12,6 +12,7 @@ services:
       - postgres
       - redis
     environment:
+      - CARGO_PKG_LICENSE=test
       - SERVICE_NAME=http_gateway
       - RABBITMQ_USER=rabbitmq
       - RABBITMQ_PASS=rabbitmq

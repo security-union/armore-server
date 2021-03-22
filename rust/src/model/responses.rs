@@ -71,8 +71,17 @@ pub struct DeviceUpdateResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct InvitationResponse {
+pub struct CreateInvitationResponse {
     pub link: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[allow(non_snake_case)]
+pub struct AcceptInvitationResponse {
+    // message property is required to avoid breaking clients on older versions of Armore
+    pub message: String,
+    pub username: String,
+    pub publicKey: String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
