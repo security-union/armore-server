@@ -27,6 +27,7 @@ import {
 import { DEFAULT_NUMBER_OF_FOLLOWERS_TO_DECLARE_EMERGENCY } from "../../auth_server/constants";
 import { LocalizableError } from "../localization/localization";
 import { Trans } from "../localization/translation";
+import { SubscribedTrackListInstancePageOptions } from "twilio/lib/rest/video/v1/room/roomParticipant/roomParticipantSubscribedTrack";
 
 export const registerWithEmail = async (
     { username, email, firstName, lastName, picture, publicKey, language }: EmailRegistration,
@@ -399,6 +400,7 @@ export const userWithEmailExists = async (email: string, database: DBClient) =>
     );
 
 export const createEmailVerificationRequest = async (
+    username: String,
     email: String,
     publicKey: String,
     database: DBClient,
@@ -426,6 +428,7 @@ export const createEmailVerificationRequest = async (
     );
 
 export const createSmsVerificationRequest = async (
+    username: String,
     phoneNumber: String,
     publicKey: String,
     database: DBClient,

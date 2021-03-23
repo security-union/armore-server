@@ -59,7 +59,7 @@ const pgConfig: ClientConfig = {
 };
 
 describe("AuthServer", () => {
-    describe("delete", () => {
+    describe.skip("delete", () => {
         const token = generateJwtTokenHelper(MOCK_PRIVATE_KEY, {
             username: "dario",
             deviceId: "dario_iphone",
@@ -192,7 +192,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe("login", () => {
+    describe.skip("login", () => {
         let service: AuthServer;
         let rabbit: RabbitClient;
 
@@ -373,7 +373,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe("register", () => {
+    describe.skip("register", () => {
         let service: AuthServer;
         let rabbit: RabbitClient;
 
@@ -670,7 +670,7 @@ describe("AuthServer", () => {
         });
     });
 
-    describe("me", () => {
+    describe.skip("me", () => {
         let service: AuthServer;
         let clock: SinonFakeTimers;
         const token = generateJwtTokenHelper(MOCK_PRIVATE_KEY, {
@@ -1059,7 +1059,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe("userExists", () => {
+    describe.skip("userExists", () => {
         let service: AuthServer;
 
         beforeAll(async () => {
@@ -1149,7 +1149,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe("userExistsWithEmail", () => {
+    describe.skip("userExistsWithEmail", () => {
         let service: AuthServer;
 
         beforeAll(async () => {
@@ -1239,7 +1239,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe("userExistsWithPhone", () => {
+    describe.skip("userExistsWithPhone", () => {
         let service: AuthServer;
 
         beforeAll(async () => {
@@ -1374,7 +1374,7 @@ describe("AuthServer", () => {
             await rabbit.close();
         });
 
-        it("login works with deletePreviousDevice = true", async (done) => {
+        it.only("login works with deletePreviousDevice = true", async (done) => {
             let currentMessage: any = undefined;
 
             rabbit.consumeFromQueue(async (msg: amqp.Message) => {
@@ -2168,7 +2168,7 @@ describe("AuthServer", () => {
         }, 5000);
     });
 
-    describe("delete user", () => {
+    describe.skip("delete user", () => {
         let service: AuthServer;
 
         beforeEach(async () => {

@@ -27,6 +27,8 @@ import { WEB_URL, VERIFICATION_EMAIL_TEMPLATE } from "../common/constants";
 import { DBClient, withSerializableTransaction } from "../common/db/db";
 import { StorageOptions, StorageClient } from "../common/storage";
 import {
+    associateUserAndEmail,
+    associateUserAndPhone,
     registerWithEmail,
     registerWithPhone,
     getUserDetails,
