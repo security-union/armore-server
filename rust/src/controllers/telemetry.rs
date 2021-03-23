@@ -419,21 +419,6 @@ pub fn username_has_follower(
     Ok(!rows.is_empty())
 }
 
-pub fn sync_users_location(
-    conn: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
-    user1: String,
-    user2: String,
-) -> Result<(), APIInternalError> {
-    let r1 = force_refresh_telemetry_internal(conn, user1.clone(), user2.clone())?;
-    let r2 = force_refresh_telemetry_internal(conn, user2, user1)?;
-
-    if r1.commandStatus == CommandState::Error || r2.commandStatus == CommandState::Error {
-        error!("{}", r1.error.unwrap());
-    }
-
-    Ok(())
-}
-
 pub fn force_refresh_telemetry_internal(
     client: &mut PooledConnection<PostgresConnectionManager<NoTls>>,
     recipient_username: String,

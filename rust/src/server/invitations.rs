@@ -1,3 +1,5 @@
+use rocket_sentry_logger::log;
+use crate::controllers::telemetry::force_refresh_telemetry_internal;
 use super::middleware::{catchers::catchers, cors::options};
 use super::validators::{friends::assert_not_friends, invitations::assert_valid_invitation};
 use crate::controllers::invitations::{
@@ -83,8 +85,12 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
 
             let inv_creator_data = get_invitation_creator(&mut conn, &id)?;
             let creator_username: String = inv_creator_data["username"].as_str().unwrap().into();
-            sync_users_location(&mut conn, auth_info.username.clone(), creator_username)?;
 
+            let error = force_refresh_telemetry_internal(&mut conn, auth_info.username.clone(), creator_username)
+            .err();
+            error?.engineering_error?.for_each(|engineering_error| {
+                error!("error closing the command {}", error.engineering_error)
+            })
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(Message {
