@@ -340,7 +340,7 @@ export const getEmail = async ({ username }: Username, database: DBClient) =>
         return result.rowCount === 1 ? result.rows[0].email : undefined;
     });
 
-export const associateUserAndPhone = async ({ username, phone_number}: { username: string, phone_number: string}, database: DBClient) {
+export const associateUserAndPhone = async ({ username, phone_number}: { username: string, phone_number: string}, database: DBClient) =>
     withDB(database).then(async (d: DBClientWithConnection) => {
         const createUser = await d.connection.query(
             `insert into users (username,  phone_number) values ($1, $2)`,
@@ -350,9 +350,8 @@ export const associateUserAndPhone = async ({ username, phone_number}: { usernam
             throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
         }
     });        
-}
 
-export const associateUserAndEmail = async ({ username, email}: { username: string, email: string}, database: DBClient) {
+export const associateUserAndEmail = async ({ username, email}: { username: string, email: string}, database: DBClient) =>
     withDB(database).then(async (d: DBClientWithConnection) => {
         const createUser = await d.connection.query(
             `insert into users (username,  email) values ($1, $2)`,
@@ -362,7 +361,6 @@ export const associateUserAndEmail = async ({ username, email}: { username: stri
             throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
         }
     });        
-}
 
 export const getUsername = async (emailOrPhone: String, database: DBClient): Promise<Username> =>
     withDB(database).then(async (d: DBClientWithConnection) => {
