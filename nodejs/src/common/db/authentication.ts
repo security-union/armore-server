@@ -14,8 +14,7 @@
 import { DBClient, withDB } from "./db";
 import {
     DBClientWithConnection,
-    EmailRegistration,
-    PhoneRegistration,
+    BaseRegistration,
     Username,
     Device2,
     UserState,
@@ -27,16 +26,15 @@ import {
 import { DEFAULT_NUMBER_OF_FOLLOWERS_TO_DECLARE_EMERGENCY } from "../../auth_server/constants";
 import { LocalizableError } from "../localization/localization";
 import { Trans } from "../localization/translation";
-import { SubscribedTrackListInstancePageOptions } from "twilio/lib/rest/video/v1/room/roomParticipant/roomParticipantSubscribedTrack";
 
-export const registerWithEmail = async (
-    { username, email, firstName, lastName, picture, publicKey, language }: EmailRegistration,
+export const register = async (
+    { username, firstName, lastName, picture, publicKey, language }: BaseRegistration,
     d: DBClientWithConnection,
 ) => {
     try {
         const createUser = await d.connection.query(
-            `insert into users (username,  email) values ($1, $2)`,
-            [username, email],
+            `insert into users (username) values ($1)`,
+            [username],
         );
         if (createUser.rowCount !== 1) {
             throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
@@ -48,64 +46,6 @@ export const registerWithEmail = async (
             throw new LocalizableError(Trans.TryAnotherUsername, 401, e.message);
         } else {
             throw new LocalizableError(Trans.TryAnotherEmailOrUsername, 401, e.message);
-        }
-    }
-
-    const createUserDetails = await d.connection.query(
-        `insert into user_details
-            (username, first_name, last_name, picture, language, creation_timestamp, updated_timestamp)
-            values ($1, $2, $3, $4, $5, now(), now())
-        `,
-        [username, firstName, lastName, picture, language],
-    );
-
-    if (createUserDetails.rowCount !== 1) {
-        throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
-    }
-
-    const createUsersState = await d.connection.query(
-        `INSERT INTO users_state (username, self_perception) VALUES ($1, $2)`,
-        [username, UserState.Normal],
-    );
-
-    if (createUsersState.rowCount !== 1) {
-        throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user state");
-    }
-
-    const createUsersSettings = await d.connection.query(
-        `INSERT INTO users_settings (username, followers_to_declare_emergency)
-            VALUES ($1, $2)`,
-        [username, DEFAULT_NUMBER_OF_FOLLOWERS_TO_DECLARE_EMERGENCY],
-    );
-
-    if (createUsersSettings.rowCount !== 1) {
-        throw new LocalizableError(
-            Trans.InternalServerError,
-            501,
-            "Unable to create users settings",
-        );
-    }
-};
-
-export const registerWithPhone = async (
-    { username, phoneNumber, firstName, lastName, picture, publicKey, language }: PhoneRegistration,
-    d: DBClientWithConnection,
-) => {
-    try {
-        const createUser = await d.connection.query(
-            `insert into users (username,  phone_number) values ($1, $2)`,
-            [username, phoneNumber],
-        );
-        if (createUser.rowCount !== 1) {
-            throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
-        }
-    } catch (e) {
-        if (e.message && e.message.includes("users_phone_number_key")) {
-            throw new LocalizableError(Trans.TryAnotherPhone, 401, e.message);
-        } else if (e.message && e.message.includes("users_pkey")) {
-            throw new LocalizableError(Trans.TryAnotherUsername, 401, e.message);
-        } else {
-            throw new LocalizableError(Trans.TryAnotherPhoneOrUsername, 401, e.message);
         }
     }
 
@@ -347,9 +287,9 @@ export const associateUserAndPhone = async ({ username, phone_number}: { usernam
             `update users set phone_number = $2 where username = $1`,
             [username, phone_number],
         );
-        if (createUser.rowCount !== 1) {
-            throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
-        }
+        //if (createUser.rowCount !== 1) {
+        //    throw new LocalizableError(Trans.InternalServerError, 501, `Unable to create user ${JSON.stringify(createUser)}`);
+        //}
     });        
 
 export const associateUserAndEmail = async ({ username, email}: { username: string, email: string}, database: DBClient) =>
@@ -358,9 +298,9 @@ export const associateUserAndEmail = async ({ username, email}: { username: stri
             `update users set email = $2 where username = $1`,
             [username, email],
         );
-        if (createUser.rowCount !== 1) {
-            throw new LocalizableError(Trans.InternalServerError, 501, "Unable to create user");
-        }
+        //if (createUser.rowCount !== 1) {
+        //    throw new LocalizableError(Trans.InternalServerError, 501, `Unable to create user ${JSON.stringify(createUser)}`);
+        //}
     });        
 
 export const getUsername = async (emailOrPhone: String, database: DBClient): Promise<Username> =>
@@ -438,10 +378,10 @@ export const createSmsVerificationRequest = async (
             const verificationCode = createVerificationCode(5);
             const result = await d.connection.query(
                 `INSERT INTO users_verification
-                            (verification_code, phone_number, public_key, used, creation_timestamp, updated_timestamp, expiration_timestamp)
-                            VALUES ($1, $2, $3, false, NOW()::timestamp, NOW()::timestamp, (NOW() + interval '60 minute')::timestamp)
+                            (verification_code, phone_number, public_key, used, creation_timestamp, updated_timestamp, expiration_timestamp, username)
+                            VALUES ($1, $2, $3, false, NOW()::timestamp, NOW()::timestamp, (NOW() + interval '60 minute')::timestamp, $4)
                             RETURNING verification_id as "verificationId", expiration_timestamp as "expirationTimestamp";`,
-                [verificationCode, phoneNumber, publicKey],
+                [verificationCode, phoneNumber, publicKey, username],
             );
             if (result.rowCount === 0) {
                 throw new LocalizableError(

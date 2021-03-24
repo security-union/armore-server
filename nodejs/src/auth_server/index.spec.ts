@@ -38,7 +38,7 @@ import { ACCEPT_LANGUAGE_HTTP_HEADER } from "../common/localization/localization
 import { removeFields } from "../http_gateway/index.spec";
 import { deleteDevice } from "../common/db/device-management";
 import { withDB } from "../common/db/db";
-import { registerPublicKey2, registerWithPhone } from "../common/db/authentication";
+import { registerPublicKey2, register } from "../common/db/authentication";
 import { waitForCondition } from "../common/test_utils";
 import { notificationsServerQueue } from "../notification_server";
 import { logger } from "../common/logger";
@@ -1118,10 +1118,9 @@ describe("AuthServer", () => {
         test("returns false if phone number is sent", async (done) => {
             const phoneNumber = "+18888888888";
             await withDB(service.pgClient).then((db) =>
-                registerWithPhone(
+                register(
                     {
                         username: "abhgf",
-                        phoneNumber,
                         firstName: "abhgf",
                         lastName: "abhgf",
                         picture: undefined,
@@ -1208,10 +1207,9 @@ describe("AuthServer", () => {
         test("returns false if phone number is sent", async (done) => {
             const phoneNumber = "+18888888888";
             await withDB(service.pgClient).then((db) =>
-                registerWithPhone(
+                register(
                     {
                         username: "abhgf",
-                        phoneNumber,
                         firstName: "abhgf",
                         lastName: "abhgf",
                         picture: undefined,
@@ -1254,10 +1252,9 @@ describe("AuthServer", () => {
             await service.start();
             const phoneNumber = "+18888888888";
             await withDB(service.pgClient).then((db) =>
-                registerWithPhone(
+                register(
                     {
                         username: "abhgf",
-                        phoneNumber,
                         firstName: "abhgf",
                         lastName: "abhgf",
                         picture: undefined,
@@ -1289,10 +1286,9 @@ describe("AuthServer", () => {
         test("returns true if user exists with phone number and international country code", async (done) => {
             const phoneNumber = "+50681999999";
             await withDB(service.pgClient).then((db) =>
-                registerWithPhone(
+                register(
                     {
                         username: "abhgfasdf",
-                        phoneNumber,
                         firstName: "abhgf",
                         lastName: "abhgf",
                         picture: undefined,
@@ -1468,10 +1464,9 @@ describe("AuthServer", () => {
             const language = "en";
 
             await withDB(service.pgClient).then((db) =>
-                registerWithPhone(
+                register(
                     {
                         username,
-                        phoneNumber,
                         firstName,
                         lastName,
                         picture: undefined,

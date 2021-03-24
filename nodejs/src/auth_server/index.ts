@@ -29,8 +29,7 @@ import { StorageOptions, StorageClient } from "../common/storage";
 import {
     associateUserAndEmail,
     associateUserAndPhone,
-    registerWithEmail,
-    registerWithPhone,
+    register,
     getUserDetails,
     registerDevice,
     registerPublicKey,
@@ -361,10 +360,9 @@ export class AuthServer implements Service {
                 }
 
                 await withSerializableTransaction(this.pgClient, async (connection) => {
-                    await registerWithEmail(
+                    await register(
                         {
                             username,
-                            email,
                             firstName,
                             lastName,
                             picture: picture !== undefined ? imageName : undefined,
@@ -379,10 +377,9 @@ export class AuthServer implements Service {
             } else if (req.body.phoneNumber) {
                 const sanitizedPhoneNumber = getPhoneE164(req.body.phoneNumber, req);
                 await withSerializableTransaction(this.pgClient, async (connection) => {
-                    await registerWithPhone(
+                    await register(
                         {
                             username,
-                            phoneNumber: sanitizedPhoneNumber,
                             firstName,
                             lastName,
                             picture: picture !== undefined ? imageName : undefined,

@@ -218,21 +218,13 @@ export interface Credentials {
     password: string;
 }
 
-interface BaseRegistration {
+export interface BaseRegistration {
     username: string;
     firstName: string;
     lastName: string;
     picture: string | undefined;
     publicKey: string;
     language: string;
-}
-
-export interface EmailRegistration extends BaseRegistration {
-    email: string;
-}
-
-export interface PhoneRegistration extends BaseRegistration {
-    phoneNumber: string;
 }
 
 export interface UserInfo {
