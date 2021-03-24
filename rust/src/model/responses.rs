@@ -87,9 +87,9 @@ pub struct CommandResponse {
 pub mod Errors {
     use crate::lang::TranslationIds;
     use crate::model::emergency::UserState;
+    use rocket_sentry_logger as logger;
     use rocket_sentry_logger::LogLevel;
     use serde::{Deserialize, Serialize};
-    use rocket_sentry_logger as logger;
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
     #[allow(non_snake_case)]
@@ -106,10 +106,13 @@ pub mod Errors {
 
     impl APIInternalError {
         pub fn log_err(&self, message: &str) {
-            logger::add_data("Error data", serde_json::json!({
-                "message": message,
-                "engineering_error": self.engineering_error 
-            }));
+            logger::add_data(
+                "Error data",
+                serde_json::json!({
+                    "message": message,
+                    "engineering_error": self.engineering_error
+                }),
+            );
             logger::log(message, LogLevel::Error);
         }
 

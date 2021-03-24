@@ -1,13 +1,11 @@
-use rocket_sentry_logger::log;
-use crate::controllers::telemetry::force_refresh_telemetry_internal;
 use super::middleware::{catchers::catchers, cors::options};
 use super::validators::{friends::assert_not_friends, invitations::assert_valid_invitation};
 use crate::controllers::invitations::{
     accept_invitation, create_invitation, get_invitation_creator, notify_accepted,
     reject_invitation, remove_friends,
 };
+use crate::controllers::telemetry::force_refresh_telemetry_internal;
 use crate::{
-    controllers::telemetry::sync_users_location,
     db::{get_connection, get_pool},
     model::{
         auth::AuthInfo,
@@ -87,15 +85,13 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
             let creator_username: String = inv_creator_data["username"].as_str().unwrap().into();
 
             let error = force_refresh_telemetry_internal(
-                &mut conn, 
-                auth_info.username.clone(), 
-                creator_username
+                &mut conn,
+                auth_info.username.clone(),
+                creator_username,
             );
 
-            error.map_err(|w| 
-                w.log_err("push refresh error")
-            );
-                    
+            let _ = error.map_err(|w| w.log_err("push refresh error"));
+
             Ok(Json(APIResponse {
                 success: true,
                 result: Some(Message {

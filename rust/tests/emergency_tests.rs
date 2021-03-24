@@ -1,4 +1,5 @@
-#[macro_use] extern crate pretty_assertions;
+#[macro_use]
+extern crate pretty_assertions;
 
 use amiquip::Connection;
 use lib::constants::ASIMOV_LIVES;
