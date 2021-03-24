@@ -5,7 +5,6 @@ use std::thread;
 use lib::constants::TELEMETRY_LAST_SEEN_SET;
 use lib::controllers::telemetry::force_refresh_telemetry_internal;
 use lib::db::get_pool;
-use lib::model::auth::AuthInfo;
 use rocket_sentry_logger::{self as logger, InitConfig};
 
 use log::{debug, error, info};
@@ -93,17 +92,11 @@ fn start_run_loop(
             let force_refresh_result = force_refresh_telemetry_internal(
                 &mut client,
                 username.to_string(),
-                &AuthInfo {
-                    username: "nanny".to_string(),
-                    key: "".to_string(),
-                    deviceId: "server".to_string(),
-                    language: "en".to_string(),
-                },
+                "nanny".to_string(),
             );
 
-            match force_refresh_result {
-                Ok(command_response) => debug!("force_result {}", command_response.success),
-                Err(_) => error!("force_result error"),
+            if let Err(_) = force_refresh_result {
+                error!("force_result error")
             }
         }
         thread::sleep(std::time::Duration::from_secs(*poll_period_seconds));

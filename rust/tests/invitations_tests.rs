@@ -321,7 +321,7 @@ fn test_remove_friend() {
 
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(
-        r#"{"success":true,"result":{"firstName":"Dario","lastName":"Lencina-Talarico"}}"#,
+        r#"{"success":true,"result":{"firstName":"Dario","lastName":"Lencina-Talarico","username":"dario"}}"#,
         &response.body_string().unwrap()
     );
 }
@@ -369,7 +369,7 @@ fn test_get_inv_creator() {
 
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(
-        r#"{"success":true,"result":{"firstName":"Dario","lastName":"Lencina-Talarico"}}"#,
+        r#"{"success":true,"result":{"firstName":"Dario","lastName":"Lencina-Talarico","username":"dario"}}"#,
         &response.body_string().unwrap()
     );
 }

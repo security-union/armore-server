@@ -4,6 +4,7 @@ use crate::controllers::invitations::{
     accept_invitation, create_invitation, get_invitation_creator, notify_accepted,
     reject_invitation, remove_friends,
 };
+use crate::controllers::telemetry::force_refresh_telemetry_internal;
 use crate::{
     db::{get_connection, get_pool},
     model::{
@@ -79,6 +80,17 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<A
 
             let _ = notify_accepted(&mut conn, &data)
                 .map_err(|w| w.log_err("Error sending notification"));
+
+            let inv_creator_data = get_invitation_creator(&mut conn, &id)?;
+            let creator_username: String = inv_creator_data["username"].as_str().unwrap().into();
+
+            let error = force_refresh_telemetry_internal(
+                &mut conn,
+                auth_info.username.clone(),
+                creator_username,
+            );
+
+            let _ = error.map_err(|w| w.log_err("push refresh error"));
 
             Ok(Json(APIResponse {
                 success: true,

@@ -1,15 +1,13 @@
-#[macro_use] extern crate pretty_assertions;
+#[macro_use]
+extern crate pretty_assertions;
 
 use amiquip::Connection as RabbitConnection;
+use lib::controllers::telemetry::{create_force_refresh_json, send_force_refresh};
 use lib::{
     db::get_pool,
-    messaging::{
-        build_user_push_notifications, create_force_refresh_json, get_rabbitmq_uri,
-        send_force_refresh,
-    },
+    messaging::{build_user_push_notifications, get_rabbitmq_uri},
     model::{devices::OS, notifications::NotificationData},
 };
-
 mod common;
 use common::dbmate::dbmate_rebuild;
 use lib::constants::DEFAULT_NOTIFICATION_ICON;
@@ -81,7 +79,7 @@ fn format_user_notifications_test() {
             username: "dario".to_string(),
             title: "hola!".to_string(),
             body: "adios!".to_string(),
-            icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
+            icon: Some(DEFAULT_NOTIFICATION_ICON.to_string()),
         },
         &mut client,
         None,
@@ -106,7 +104,7 @@ fn format_user_notifications_with_priority_test() {
             username: "dario".to_string(),
             title: "hola!".to_string(),
             body: "adios!".to_string(),
-            icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
+            icon: Some(DEFAULT_NOTIFICATION_ICON.to_string()),
         },
         &mut client,
         Some("high"),

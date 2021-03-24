@@ -1,3 +1,4 @@
+use crate::constants::DEFAULT_NOTIFICATION_ICON;
 use crate::constants::INV_ENDPOINT;
 use crate::db::transaction;
 use crate::lang::{get_glossary, TranslationIds};
@@ -11,7 +12,6 @@ use crate::model::{
 };
 use amiquip::Connection as RabbitConnection;
 use amiquip::Result;
-use crate::constants::DEFAULT_NOTIFICATION_ICON;
 use postgres::{error::SqlState, row::Row};
 use rocket_contrib::json::JsonValue;
 use std::time::SystemTime;
@@ -145,7 +145,9 @@ pub fn get_invitation_creator(
     get_inv_creator(conn, id).and_then(|row| {
         let first_name: String = row.get("first_name");
         let last_name: String = row.get("last_name");
+        let username: String = row.get("username");
         Ok(json!({
+            "username": username,
             "firstName": first_name,
             "lastName": last_name
         }))
@@ -154,7 +156,7 @@ pub fn get_invitation_creator(
 
 fn get_inv_creator(conn: &mut PostgresConnection, id: &str) -> Result<Row, APIInternalError> {
     conn.query(
-        "SELECT ud.first_name, ud.last_name 
+        "SELECT ud.first_name, ud.last_name, ud.username
         FROM link_invitations lnk 
         INNER JOIN user_details ud
         ON lnk.id = $1 AND ud.username = lnk.creator_username",
@@ -187,7 +189,7 @@ fn build_inv_accepted_notification(
             username: data.creator.clone(),
             title,
             body,
-            icon:  Some(DEFAULT_NOTIFICATION_ICON.to_string()),
+            icon: Some(DEFAULT_NOTIFICATION_ICON.to_string()),
         },
         conn,
         None

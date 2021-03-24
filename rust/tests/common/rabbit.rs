@@ -6,7 +6,7 @@ use amiquip::{
     Queue, QueueDeclareOptions,
 };
 
-use lib::messaging::{NOTIFICATIONS_EXCHANGE, NOTIFICATIONS_ROUTING_KEY};
+use lib::constants::{NOTIFICATIONS_EXCHANGE, NOTIFICATIONS_ROUTING_KEY};
 
 pub fn bind_notifications_queue(channel: &Channel) -> Queue {
     let queue = channel
