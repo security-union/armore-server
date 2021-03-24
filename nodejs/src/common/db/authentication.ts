@@ -350,10 +350,10 @@ export const createEmailVerificationRequest = async (
             const verificationCode = createVerificationCode(5);
             const result = await d.connection.query(
                 `INSERT INTO users_verification
-                    (verification_code, email, public_key, used, creation_timestamp, updated_timestamp, expiration_timestamp)
-                    VALUES ($1, $2, $3, false, NOW()::timestamp, NOW()::timestamp, (NOW() + interval '60 minute')::timestamp)
+                    (verification_code, email, public_key, used, creation_timestamp, updated_timestamp, expiration_timestamp, username)
+                    VALUES ($1, $2, $3, false, NOW()::timestamp, NOW()::timestamp, (NOW() + interval '60 minute')::timestamp, $4)
                     RETURNING verification_id as "verificationId", expiration_timestamp as "expirationTimestamp", used`,
-                [verificationCode, email, publicKey],
+                [verificationCode, email, publicKey, username],
             );
             if (result.rowCount === 0) {
                 throw new LocalizableError(

@@ -59,7 +59,7 @@ const pgConfig: ClientConfig = {
 };
 
 describe("AuthServer", () => {
-    describe.skip("delete", () => {
+    describe("delete", () => {
         const token = generateJwtTokenHelper(MOCK_PRIVATE_KEY, {
             username: "dario",
             deviceId: "dario_iphone",
@@ -192,7 +192,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe.skip("login", () => {
+    describe("login", () => {
         let service: AuthServer;
         let rabbit: RabbitClient;
 
@@ -373,7 +373,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe.skip("register", () => {
+    describe("register", () => {
         let service: AuthServer;
         let rabbit: RabbitClient;
 
@@ -527,7 +527,7 @@ describe("AuthServer", () => {
                     expect(
                         (
                             await service.pgClient.connection!.query(
-                                "SELECT * from users where email = 'derp@gmail.com'",
+                                "SELECT * from users_verification where email = 'derp@gmail.com'",
                             )
                         ).rowCount,
                     ).toEqual(1);
@@ -616,7 +616,7 @@ describe("AuthServer", () => {
                     expect(
                         (
                             await service.pgClient.connection!.query(
-                                "SELECT * from users where phone_number = '+18888888888'",
+                                "SELECT * from users_verification where phone_number = '+18888888888'",
                             )
                         ).rowCount,
                     ).toEqual(1);
@@ -670,7 +670,7 @@ describe("AuthServer", () => {
         });
     });
 
-    describe.skip("me", () => {
+    describe("me", () => {
         let service: AuthServer;
         let clock: SinonFakeTimers;
         const token = generateJwtTokenHelper(MOCK_PRIVATE_KEY, {
@@ -1059,7 +1059,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe.skip("userExists", () => {
+    describe("userExists", () => {
         let service: AuthServer;
 
         beforeAll(async () => {
@@ -1148,7 +1148,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe.skip("userExistsWithEmail", () => {
+    describe("userExistsWithEmail", () => {
         let service: AuthServer;
 
         beforeAll(async () => {
@@ -1237,7 +1237,7 @@ describe("AuthServer", () => {
         }, 1000);
     });
 
-    describe.skip("userExistsWithPhone", () => {
+    describe("userExistsWithPhone", () => {
         let service: AuthServer;
 
         beforeAll(async () => {
@@ -1370,7 +1370,7 @@ describe("AuthServer", () => {
             await rabbit.close();
         });
 
-        it.only("login works with deletePreviousDevice = true", async (done) => {
+        it("login works with deletePreviousDevice = true", async (done) => {
             let currentMessage: any = undefined;
 
             rabbit.consumeFromQueue(async (msg: amqp.Message) => {
@@ -2163,7 +2163,7 @@ describe("AuthServer", () => {
         }, 5000);
     });
 
-    describe.skip("delete user", () => {
+    describe("delete user", () => {
         let service: AuthServer;
 
         beforeEach(async () => {
