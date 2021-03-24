@@ -187,10 +187,13 @@ export class AuthServer implements Service {
 
             if (req.body.email) {
                 const email = req.body.email.toLowerCase();
-                await this.createAndSendVerificationEmail(email, publicKey, req);
+                const {username} = await getUsername(email, this.pgClient);
+                await this.createAndSendVerificationEmail(username, email, publicKey, req);
             } else if (req.body.phoneNumber) {
+                const phoneNumber = req.body.phoneNumber.toLowerCase();
+                const {username} = await getUsername(phoneNumber, this.pgClient);
                 const sanitizedPhoneNumber = getPhoneE164(req.body.phoneNumber, req);
-                await this.createAndSendVerificationSms(sanitizedPhoneNumber, publicKey, req);
+                await this.createAndSendVerificationSms(username, sanitizedPhoneNumber, publicKey, req);
             } else {
                 throw new LocalizableError(
                     Trans.BadRequest,
@@ -370,7 +373,7 @@ export class AuthServer implements Service {
                         },
                         connection,
                     );
-                    await this.createAndSendVerificationEmail(email, publicKey, req);
+                    await this.createAndSendVerificationEmail(username, email, publicKey, req);
                 });
                 sendSlackMessage(`User registered username: ${username} email: ${email}`);
             } else if (req.body.phoneNumber) {
@@ -388,7 +391,7 @@ export class AuthServer implements Service {
                         },
                         connection,
                     );
-                    await this.createAndSendVerificationSms(sanitizedPhoneNumber, publicKey, req);
+                    await this.createAndSendVerificationSms(username, sanitizedPhoneNumber, publicKey, req);
                 });
                 sendSlackMessage(
                     `User registered username: ${username} phone: ${sanitizedPhoneNumber}`,
@@ -501,13 +504,13 @@ export class AuthServer implements Service {
             });
         });
 
-    createAndSendVerificationEmail = async (email: string, publicKey: string, req: Request) => {
-        const username = await getUsername(email, this.pgClient);
+    createAndSendVerificationEmail = async (username: string, email: string, publicKey: string, req: Request) => {
         if (!username) {
             throw new LocalizableError(Trans.BadRequest, 400, "Username does not exist");
         }
-        const userDetails = await getUserDetails(username, this.pgClient);
+        const userDetails = await getUserDetails({username}, this.pgClient);
         const { verificationId, verificationCode } = await createEmailVerificationRequest(
+            username,
             email,
             publicKey,
             this.pgClient,
@@ -546,8 +549,9 @@ export class AuthServer implements Service {
         }
     };
 
-    createAndSendVerificationSms = async (phoneNumber: string, publicKey: string, req: Request) => {
+    createAndSendVerificationSms = async (username: string, phoneNumber: string, publicKey: string, req: Request) => {
         const { verificationId, verificationCode } = await createSmsVerificationRequest(
+            username,
             phoneNumber,
             publicKey,
             this.pgClient,

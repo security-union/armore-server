@@ -344,7 +344,7 @@ export const getEmail = async ({ username }: Username, database: DBClient) =>
 export const associateUserAndPhone = async ({ username, phone_number}: { username: string, phone_number: string}, database: DBClient) =>
     withDB(database).then(async (d: DBClientWithConnection) => {
         const createUser = await d.connection.query(
-            `insert into users (username,  phone_number) values ($1, $2)`,
+            `update users set phone_number = $2 where username = $1`,
             [username, phone_number],
         );
         if (createUser.rowCount !== 1) {
@@ -355,7 +355,7 @@ export const associateUserAndPhone = async ({ username, phone_number}: { usernam
 export const associateUserAndEmail = async ({ username, email}: { username: string, email: string}, database: DBClient) =>
     withDB(database).then(async (d: DBClientWithConnection) => {
         const createUser = await d.connection.query(
-            `insert into users (username,  email) values ($1, $2)`,
+            `update users set email = $2 where username = $1`,
             [username, email],
         );
         if (createUser.rowCount !== 1) {
