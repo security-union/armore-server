@@ -15,13 +15,13 @@ import { Request, Response } from "express";
 import { Server } from "http";
 import * as core from "express-serve-static-core";
 import { ClientConfig } from "pg";
-import { validationResult } from "express-validator";
+import { param, validationResult } from "express-validator";
 
 import { Service } from "../common/service";
 import { logger } from "../common/logger";
 import router from "../common/router";
 import { auth } from "../common/authentication";
-import { DBClient } from "../common/db/db";
+import { DBClient, withSerializableTransaction } from "../common/db/db";
 import { RedisConfig } from "../common/tedis-config";
 import { StorageOptions, StorageClient } from "../common/storage";
 import {
@@ -41,6 +41,7 @@ import {
     translate,
 } from "../common/localization/localization";
 import { Trans } from "../common/localization/translation";
+import { changeAccessType } from "../common/db/social";
 
 
 const httpGatewayQueue: QueueOptions = {
@@ -86,7 +87,14 @@ export class HTTPGateway implements Service {
     start = async (): Promise<void> => {
         await this.pgClient.connect();
         await this.rabbit.start();
-
+        this.router.post(
+            "/me/connections/followers/:username/accessType/:accessType",
+            [
+                param("username").isLength({ min: 3, max: 255 }).trim().isString(),
+                param("accessType").isLength({ min: 3, max: 255 }).trim().isString(),
+            ],
+            this.changeAccessType,
+        );
         this.router.get("/image/:image", this.getImage);
         this.router.get("/geofences", this.getGeofences);
         this.router.post("/geofences", this.createGeofence);
@@ -100,6 +108,29 @@ export class HTTPGateway implements Service {
         await this.rabbit.close();
         await this.pgClient.end();
     };
+    changeAccessType = async (req: Request, res: Response) =>
+        auth(req, res, this.pgClient, async ({ username }) =>
+            withErrorBoundary(req, res, async () => {
+                const errors = validationResult(req);
+                if (!errors.isEmpty()) {
+                    throw createError(errors, req);
+                }
+                await withSerializableTransaction(this.pgClient, async (connection) => {
+                    await changeAccessType(
+                        {
+                            follower: req.params.username,
+                            accessType: req.params["accessType"],
+                            username,
+                        },
+                        connection,
+                    );
+                });
+                res.status(200).send({
+                    success: true,
+                    result: { message: translate(Trans.Success, req) },
+                });
+            }),
+        );
 
     getImage = async (req: Request, res: Response) =>
         auth(req, res, this.pgClient, async ({ username }) =>
