@@ -13,6 +13,7 @@ use crate::{
 };
 use rocket::{Rocket, State};
 use rocket_contrib::json::Json;
+use crate::utils::sentry::log_api_err;
 
 #[post("/state", format = "application/json", data = "<update_state>")]
 fn update_state(
@@ -29,7 +30,13 @@ fn update_state(
                 result: Some(Message { message: new_state }),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err|{ 
+            log_api_err(
+                "POST /v1/emergency/state",
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)})
 }
 
 #[post("/<username>/report")]
@@ -49,7 +56,14 @@ fn update_friend_state(
                 }),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err(
+                &format!("POST /v1/emergency/{}/report", username),
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 #[get("/<username>/telemetry?<start_time>&<end_time>")]
@@ -71,7 +85,14 @@ fn get_user_historical_location(
                 result: Some(historical),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err(
+                &format!("GET /v1/emergency/{}/telemetry?{}&{}", username, start_time, end_time),
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 pub fn rocket() -> Rocket {

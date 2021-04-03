@@ -30,3 +30,4 @@ pub mod lang;
 pub mod messaging;
 pub mod model;
 pub mod server;
+pub mod utils;

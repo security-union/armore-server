@@ -107,7 +107,7 @@ pub mod Errors {
         pub engineeringError: Option<String>,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Serialize)]
     pub struct APIInternalError {
         pub msg: TranslationIds,
         pub engineering_error: Option<String>,

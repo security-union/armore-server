@@ -1,11 +1,12 @@
-use std::collections::HashMap;
 mod english;
 mod spanish;
 
 use english::ENGLISH;
+use serde::Serialize;
 use spanish::SPANISH;
+use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, PartialEq, Eq, Hash)]
 pub enum TranslationIds {
     NannyNotificationAttention,
     NannyNotificationBody,

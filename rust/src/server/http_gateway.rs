@@ -1,9 +1,3 @@
-use std::env;
-
-use amiquip::Connection;
-use rocket::{Rocket, State};
-use rocket_contrib::json::Json;
-
 use super::middleware::{catchers::catchers, cors};
 use crate::controllers::devices::{get_device_by_id, update_device_settings};
 use crate::controllers::telemetry::{
@@ -23,6 +17,11 @@ use crate::model::{
     telemetry::{CommandState, FollowerKey},
     Storage,
 };
+use crate::utils::sentry::log_api_err;
+use amiquip::Connection;
+use rocket::{Rocket, State};
+use rocket_contrib::json::Json;
+use std::env;
 
 #[allow(unused_must_use)]
 #[post(
@@ -46,8 +45,10 @@ fn post_telemetry(
         .get_connection()
         .expect("Unable to get redis connection from state.");
 
-    store_telemetry(&telemetry_request, &auth_info, &mut client, &mut redis)
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
+    store_telemetry(&telemetry_request, &auth_info, &mut client, &mut redis).map_err(|err| {
+        log_api_err("POST /v1/telemetry", &err, Some(&auth_info));
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+    })?;
 
     // This request was force pushed due to a ForcePush Request, store the result.
     if telemetry_request.correlationId.is_some() {
@@ -63,11 +64,16 @@ fn post_telemetry(
     }
 
     // TODO: send message to geofence service.
-    let all_friends = get_connections(&auth_info.username, &mut client, &mut redis)
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
+    let all_friends =
+        get_connections(&auth_info.username, &mut client, &mut redis).map_err(|err| {
+            log_api_err("POST /v1/telemetry", &err, Some(&auth_info));
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })?;
 
-    let user_state = get_user_state(&auth_info.username, &mut client)
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
+    let user_state = get_user_state(&auth_info.username, &mut client).map_err(|err| {
+        log_api_err("POST /v1/telemetry", &err, Some(&auth_info));
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+    })?;
 
     match (user_state, Connection::insecure_open(&get_rabbitmq_uri())) {
         (Some(state), Ok(mut connection)) => {
@@ -87,21 +93,17 @@ fn post_telemetry(
         }
     }
 
-    if telemetry_request.returnFriendLocations {
-        Ok(Json(APIResponse {
-            success: true,
-            result: Option::Some(all_friends),
-        }))
-    } else {
-        Ok(Json(APIResponse {
-            success: true,
-            result: Option::None,
-        }))
-    }
+    Ok(Json(APIResponse {
+        success: true,
+        result: if telemetry_request.returnFriendLocations {
+            Some(all_friends)
+        } else {
+            None
+        },
+    }))
 }
 
-#[allow(unused_must_use)]
-#[get("/followers/keys", format = "application/json")]
+#[get("/followers/keys")]
 fn get_keys(
     state: State<Storage>,
     auth_info: AuthInfo,
@@ -110,16 +112,19 @@ fn get_keys(
         .database
         .get()
         .expect("Unable to get database connection from state.");
-    let keys = get_follower_keys(&auth_info.username, &mut client)
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
+
+    let keys = get_follower_keys(&auth_info.username, &mut client).map_err(|err| {
+        log_api_err("GET /v1/followers/keys", &err, Some(&auth_info));
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+    })?;
+
     Ok(Json(APIResponse {
         success: true,
         result: keys,
     }))
 }
 
-#[allow(unused_must_use)]
-#[get("/telemetry/<recipient_username>", format = "application/json")]
+#[get("/telemetry/<recipient_username>")]
 fn force_refresh_telemetry(
     recipient_username: String,
     state: State<Storage>,
@@ -133,7 +138,14 @@ fn force_refresh_telemetry(
     // 0. Verify that username follows recipient_username
     let username_has_follower =
         username_has_follower(&mut client, &recipient_username, &auth_info.username).map_err(
-            |err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language),
+            |err| {
+                log_api_err(
+                    &format!("GET /v1/telemetry/{}", &recipient_username),
+                    &err,
+                    Some(&auth_info),
+                );
+                APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+            },
         )?;
     if !username_has_follower {
         return Ok(Json(APIResponse {
@@ -148,10 +160,17 @@ fn force_refresh_telemetry(
 
     let response = force_refresh_telemetry_internal(
         &mut client,
-        recipient_username,
+        recipient_username.clone(),
         auth_info.username.clone(),
     )
-    .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))?;
+    .map_err(|err| {
+        log_api_err(
+            &format!("GET /v1/telemetry/{}", &recipient_username),
+            &err,
+            Some(&auth_info),
+        );
+        APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+    })?;
 
     Ok(Json(APIResponse {
         success: response.commandStatus != CommandState::Error,
@@ -159,7 +178,6 @@ fn force_refresh_telemetry(
     }))
 }
 
-#[allow(unused_must_use)]
 #[post(
     "/device/settings",
     data = "<device_update_request>",
@@ -177,6 +195,7 @@ fn update_device(
 
     let mut device_update =
         get_device_by_id(&auth_info.deviceId[..], &mut client).map_err(|error| {
+            log_api_err("POST /v1/device/settings", &error, Some(&auth_info));
             APIJsonResponse::api_error_with_internal_error(error, &auth_info.language)
         })?;
 
@@ -195,7 +214,10 @@ fn update_device(
                 result: DeviceUpdateResponse { updated: u },
             }))
         })
-        .map_err(|error| APIJsonResponse::api_error_with_internal_error(error, &auth_info.language))
+        .map_err(|error| {
+            log_api_err("POST /v1/device/settings", &error, Some(&auth_info));
+            APIJsonResponse::api_error_with_internal_error(error, &auth_info.language)
+        })
 }
 
 pub fn rocket() -> Rocket {
