@@ -1,5 +1,4 @@
 use lib::server::invitations::rocket;
-use lib::server::middleware::logging;
 use log::debug;
 use rocket_sentry_logger::{self as logger, InitConfig};
 
@@ -17,7 +16,6 @@ fn main() {
             rocket()
                 .manage(sentry_logger)
                 .attach(logger::fairing())
-                .attach(logging::api_json_response_fairing())
                 .launch();
         }
         Err(_) => {

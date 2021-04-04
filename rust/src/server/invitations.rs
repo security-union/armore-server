@@ -5,13 +5,16 @@ use crate::controllers::invitations::{
     reject_invitation, remove_friends,
 };
 use crate::controllers::telemetry::force_refresh_telemetry_internal;
+use crate::utils::sentry::log_api_err;
 use crate::{
     db::{get_connection, get_pool},
     model::{
         auth::AuthInfo,
         invitations::{LinkActionData, LinkCreationData},
         requests::InvitationRequest,
-        responses::{APIJsonResponse, APIResponse, AcceptInvitationResponse, CreateInvitationResponse},
+        responses::{
+            APIJsonResponse, APIResponse, AcceptInvitationResponse, CreateInvitationResponse,
+        },
         APIResult, Message, Storage,
     },
 };
@@ -42,7 +45,10 @@ fn create(
                 result: Some(CreateInvitationResponse { link }),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err("POST /v1/invitations", &err, Some(&auth_info));
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 #[post("/<id>/reject")]
@@ -63,11 +69,22 @@ fn reject(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<M
                 }),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err(
+                &format!("POST /v1/invitations/{}/reject", id),
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 #[post("/<id>/accept")]
-fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<AcceptInvitationResponse> {
+fn accept(
+    id: String,
+    auth_info: AuthInfo,
+    state: State<Storage>,
+) -> APIResult<AcceptInvitationResponse> {
     let data = LinkActionData {
         uuid: id.clone(),
         username: auth_info.username.clone(),
@@ -97,7 +114,14 @@ fn accept(id: String, auth_info: AuthInfo, state: State<Storage>) -> APIResult<A
                 result: Some(res),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err(
+                &format!("POST /v1/invitations/{}/accept", id),
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 #[delete("/remove/<username>")]
@@ -117,7 +141,14 @@ fn remove_friend(
                 }),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err(
+                &format!("DELETE /v1/invitations/remove/{}", username),
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 #[get("/<id>/creator")]
@@ -130,7 +161,14 @@ pub fn get_creator(id: String, auth_info: AuthInfo, state: State<Storage>) -> AP
                 result: Some(data),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &auth_info.language))
+        .map_err(|err| {
+            log_api_err(
+                &format!("GET /v1/invitations/{}/creator", id),
+                &err,
+                Some(&auth_info),
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &auth_info.language)
+        })
 }
 
 #[get("/public/<id>/creator")]
@@ -143,7 +181,14 @@ pub fn get_creator_public(id: String, state: State<Storage>) -> APIResult<JsonVa
                 result: Some(data),
             }))
         })
-        .map_err(|err| APIJsonResponse::api_error_with_internal_error(err, &"en".to_string()))
+        .map_err(|err| {
+            log_api_err(
+                &format!("GET /v1/invitations/public/{}/creator", id),
+                &err,
+                None,
+            );
+            APIJsonResponse::api_error_with_internal_error(err, &"en".to_string())
+        })
 }
 
 pub fn rocket() -> Rocket {

@@ -1,7 +1,3 @@
-use std::collections::BTreeMap;
-
-use jsonwebtoken::{dangerous_insecure_decode, decode, Algorithm, DecodingKey, Validation};
-use rocket::http::Status;
 /**
  * Copyright [2020] [Dario Alessandro Lencina Talarico]
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +10,6 @@ use rocket::http::Status;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-use rocket::request::{FromRequest, Outcome};
-use rocket::{request, Request, State};
-use serde_json::Value;
-
 use crate::constants::ASIMOV_LIVES;
 use crate::controllers::telemetry::{get_public_key, get_user_details};
 use crate::model::{
@@ -25,7 +17,10 @@ use crate::model::{
     responses::{APIJsonResponse, Errors::APIError},
     Storage,
 };
-use rocket_sentry_logger as logger;
+use jsonwebtoken::{dangerous_insecure_decode, decode, Algorithm, DecodingKey, Validation};
+use rocket::http::Status;
+use rocket::request::{FromRequest, Outcome};
+use rocket::{request, Request, State};
 
 impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
     type Error = APIJsonResponse;
@@ -129,8 +124,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
                 let language: String = user_details.map_or("en".into(), |details| {
                     details.language.unwrap_or("en".into())
                 });
-
-                set_sentry_user(&token_data.claims);
                 Outcome::Success(AuthInfo {
                     key: token.to_string(),
                     username: token_data.claims.username,
@@ -150,19 +143,4 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthInfo {
             )),
         };
     }
-}
-
-fn set_sentry_user(claims: &Claims) {
-    let user_data: BTreeMap<String, Value> = vec![(
-        "device_id".into(),
-        serde_json::json!(claims.deviceId.clone()),
-    )]
-    .into_iter()
-    .collect();
-    let user = logger::User {
-        username: Some(claims.username.clone()),
-        other: user_data,
-        ..Default::default()
-    };
-    logger::set_user(user);
 }
