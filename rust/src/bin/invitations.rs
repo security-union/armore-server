@@ -15,7 +15,7 @@ fn main() {
             );
             rocket()
                 .manage(sentry_logger)
-                .attach(logger::fairing())
+                .attach(logger::fairing(Some(vec![403])))
                 .launch();
         }
         Err(_) => {
