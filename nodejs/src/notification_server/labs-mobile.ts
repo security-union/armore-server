@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logger } from "../common/logger";
 import { SmsRequest } from "./sms-sender";
 
 export class LabsMobile {

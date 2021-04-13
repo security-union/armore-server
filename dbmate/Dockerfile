@@ -12,7 +12,7 @@ ENV DBMATE_MIGRATIONS_DIR=/app/db/migrations
 #Install curl
 RUN apt-get update && \
     apt-get --yes install curl && \
-    curl -fsSL -o /usr/local/bin/dbmate dbmate_url && \
+    curl -fsSL -o /usr/local/bin/dbmate $dbmate_url && \
     chmod +x /usr/local/bin/dbmate && \
     chmod +x /app/startup.sh
 
