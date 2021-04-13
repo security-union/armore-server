@@ -4,8 +4,7 @@ process.env.TWILIO_NUMBER = "blah"
 process.env.LABS_MOBILE_USERNAME = "blah"
 process.env.LABS_MOBILE_PASSWORD = "blah"
 
-import { AlphaSenderContext } from "twilio/lib/rest/messaging/v1/service/alphaSender"
-import { SMSSender } from ".";
+import { SMSSender } from "./sms-sender";
 
 
 describe("Notifications Server", () => {
@@ -16,7 +15,7 @@ describe("Notifications Server", () => {
         });
         test("Sends MEX sms to labsMobile", () => {
             const phoneNumber = "+524771234333"
-            sender.PROVIDER_MAP
+
         });
         test("Sends USA sms to twilio", () => {
 

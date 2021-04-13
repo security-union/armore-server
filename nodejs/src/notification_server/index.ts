@@ -10,9 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import http from "http";
 import { Request, Response } from "express";
-import { partition } from "lodash";
+
 import sgMail from "@sendgrid/mail";
 import { MailData } from "@sendgrid/helpers/classes/mail";
 
@@ -22,10 +21,10 @@ import { ClientConfig } from "pg";
 import PushNotifications from "node-pushnotifications";
 import amqp from "amqplib";
 import { check, validationResult } from "express-validator";
-import { Twilio } from "twilio";
 
 import { DBClient } from "../common/db/db";
 import { Service } from "../common/service";
+import { SMSSender, SmsRequest } from "./sms-sender";
 import {
     IOS_BUNDLES,
     IOS_PLATFORM,
@@ -35,11 +34,6 @@ import {
     PUSH_NOTIFICATIONS_TOKEN_KEY_ID_IOS,
     PUSH_NOTIFICATIONS_TOKEN_TEAM_ID_IOS,
     EMAIL_SENDER,
-    TWILIO_ACCOUNT_SID,
-    TWILIO_AUTH_TOKEN,
-    TWILIO_NUMBER,
-    LABS_MOBILE_PASSWORD,
-    LABS_MOBILE_USERNAME
 } from "../common/constants";
 import router from "../common/router";
 import { logger } from "../common/logger";
@@ -53,17 +47,7 @@ import { createError } from "../common/sanitizer";
 import { RabbitClient, QueueOptions } from "../common/rabbit-helpers";
 import { notificationsExchange } from "../common/rabbit-constants";
 import { withErrorBoundary } from "../common/localization/error-boundary";
-import phone from "phone";
 
-interface PushNotificationsRequest {
-    deviceId: string;
-    data: PushNotifications.Data;
-}
-
-interface SmsRequest {
-    body: string;
-    to: string;
-}
 
 interface MailDataWithUsername {
     username: string | undefined;
@@ -73,98 +57,14 @@ interface MailDataWithUsername {
     dynamicTemplateData?: { [key: string]: any };
 }
 
+interface PushNotificationsRequest {
+    deviceId: string;
+    data: PushNotifications.Data;
+}
+
 export const notificationsServerQueue: QueueOptions = {
     name: "notifications.consumer",
 };
-
-export class SMSSender {
-    twilio: Twilio;
-    labsMobile: LabsMobile;
-
-    PROVIDER_MAP: { [key: string]: string } = {
-        "MEX": "labsMobile",
-        "COL": "labsMobile",
-    }
-
-    constructor() {
-        if (LABS_MOBILE_USERNAME !== "" && LABS_MOBILE_PASSWORD !== "") {
-            this.labsMobile = new LabsMobile(LABS_MOBILE_USERNAME, LABS_MOBILE_PASSWORD);
-        } else {
-            throw new Error(
-                "Invalid configuration. Must set env vars LABS_MOBILE_USERNAME and LABS_MOBILE_PASSWORD",
-            );
-        }
-
-        if (TWILIO_ACCOUNT_SID !== "" && TWILIO_AUTH_TOKEN !== "" && TWILIO_NUMBER !== "") {
-            this.twilio = new Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-        } else {
-            throw new Error(
-                "Invalid configuration. Must set env vars TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_NUMBER",
-            );
-        }
-    }
-
-    send = async (smsRequest: SmsRequest[]) => {
-        try {
-            const [twilioSms, labsMobileSms] = this.mapPhoneNumberToProvider(smsRequest);
-            const twilioPromises = twilioSms.flatMap( (sms) => { this._sendTwilio(sms) });
-            const labsMobilePromises = labsMobileSms.flatMap( (sms) => { this._sendLabsMobile(sms) });
-            const promises = twilioPromises.concat(labsMobilePromises);
-            return Promise.allSettled(promises);
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    }
-
-    mapPhoneNumberToProvider = (smsRequest: SmsRequest[]): [SmsRequest[], SmsRequest[]] => {
-        return partition(smsRequest, (req) => {
-            const [_, countryCode] = phone(req.to)     
-            if (this.PROVIDER_MAP[countryCode] !== undefined) {
-                return false;
-            } else {
-                return true;
-            }
-        });
-    }
-
-    _sendLabsMobile = async (smsRequest: SmsRequest) => {
-        try {
-            return this.labsMobile.sendSms(smsRequest);
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-
-    _sendTwilio = async (smsRequest: SmsRequest) => {
-        try {
-            return this.twilio.messages
-                .create({ ...smsRequest, from: TWILIO_NUMBER })
-                .then((message) => logger.debug("Sent sms sid: ", message.sid))
-                .catch((reason) => logger.error("Unable to send sms ", reason));
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-}
-
-export class LabsMobile {
-    username: string;
-    password: string;
-
-    constructor(username: string, password: string) {
-        this.username = username;
-        this.password = password;
-    }
-
-    sendSms = async (smsRequest: SmsRequest) => {
-        let url = `https://api.labsmobile.com/get/send.php?username=${this.username}&password=${this.password}&message=${smsRequest.body}&msisdn=${smsRequest.to}`
-        let res = await http.get(url, (res) => {
-            const { statusCode } = res;
-            const contentType = res.headers['content-type'];
-        });
-        return res;
-    };
-}
 
 export class NotificationServer implements Service {
     readonly rabbit: RabbitClient;
