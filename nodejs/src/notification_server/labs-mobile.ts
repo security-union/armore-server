@@ -11,7 +11,8 @@ export class LabsMobile {
     }
 
     sendSms = async (smsRequest: SmsRequest) => {
-        let url = `https://api.labsmobile.com/get/send.php?username=${this.username}&password=${this.password}&message=${smsRequest.body}&msisdn=${smsRequest.to}`;
-        return await axios.get(url);
+        const url = `https://api.labsmobile.com/get/send.php?username=${this.username}&password=${this.password}&message=${smsRequest.body}&msisdn=${smsRequest.to}`;
+        const response = await axios.get(url);
+        return response.data;
     };
 }

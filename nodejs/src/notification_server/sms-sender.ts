@@ -47,10 +47,10 @@ export class SMSSender {
         try {
             const [twilioSms, labsMobileSms] = this.mapPhoneNumberToProvider(smsRequest);
             const twilioPromises = twilioSms.flatMap((sms) => {
-                this._sendTwilio(sms);
+                return this._sendTwilio(sms);
             });
             const labsMobilePromises = labsMobileSms.flatMap((sms) => {
-                this._sendLabsMobile(sms);
+                return this._sendLabsMobile(sms);
             });
             const promises = twilioPromises.concat(labsMobilePromises);
             return Promise.allSettled(promises);
@@ -72,6 +72,7 @@ export class SMSSender {
 
     _sendLabsMobile = async (smsRequest: SmsRequest) => {
         try {
+            logger.info(`labsmobile: ${smsRequest.to}`);
             return this.labsMobile.sendSms(smsRequest);
         } catch (e) {
             return Promise.reject(e);
@@ -80,10 +81,10 @@ export class SMSSender {
 
     _sendTwilio = async (smsRequest: SmsRequest) => {
         try {
+            logger.info(`twilio: ${smsRequest.to}`);
             return this.twilio.messages
                 .create({ ...smsRequest, from: TWILIO_NUMBER })
-                .then((message) => logger.debug("Sent sms sid: ", message.sid))
-                .catch((reason) => logger.error("Unable to send sms ", reason));
+                .then((message) => message.sid);
         } catch (e) {
             return Promise.reject(e);
         }
