@@ -82,19 +82,13 @@ export class CloudStorage implements StorageInterface {
 
     async storeImage(base64String: string, fileName: string): Promise<void> {
         const imageData = Buffer.from(base64String, "base64");
-        await this.storageClient
-            .bucket(this.bucketName)
-            .file(fileName)
-            .save(imageData, {
-                gzip: true,
-            });
+        await this.storageClient.bucket(this.bucketName).file(fileName).save(imageData, {
+            gzip: true,
+        });
     }
 
     async readImage(image: string): Promise<Buffer> {
-        const data = await this.storageClient
-            .bucket(this.bucketName)
-            .file(image)
-            .download({});
+        const data = await this.storageClient.bucket(this.bucketName).file(image).download({});
         return data[0];
     }
 }

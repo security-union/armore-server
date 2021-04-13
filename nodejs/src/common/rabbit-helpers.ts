@@ -56,7 +56,7 @@ export class RabbitClient {
         const channel = await connection.createChannel();
         this.channel = channel;
 
-        channel.on("error", err => {
+        channel.on("error", (err) => {
             logger.error(`Channel error ${JSON.stringify(err)}`);
         });
 
@@ -90,7 +90,7 @@ export class RabbitClient {
     close = async () => {
         if (this.channel) {
             await Promise.all(
-                this.exchangeOptions.map(async exchange => {
+                this.exchangeOptions.map(async (exchange) => {
                     if (this.channel && this.queueOptions?.name) {
                         await this.channel.unbindQueue(
                             this.queueOptions?.name,

@@ -48,7 +48,6 @@ import { RabbitClient, QueueOptions } from "../common/rabbit-helpers";
 import { notificationsExchange } from "../common/rabbit-constants";
 import { withErrorBoundary } from "../common/localization/error-boundary";
 
-
 interface MailDataWithUsername {
     username: string | undefined;
     email: string | undefined;

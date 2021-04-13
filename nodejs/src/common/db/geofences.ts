@@ -60,16 +60,16 @@ export const getGeofences = async ({ username }: Username, database: DBClient) =
                 "SELECT geofence_id " + "FROM device_geofence " + "WHERE active = true",
             );
 
-            const activeGeofences = active.rows.map(v => v.get("geofence_id"));
+            const activeGeofences = active.rows.map((v) => v.get("geofence_id"));
 
             const result = mapGeofencesToJSON({ mine, subscribed, unsubscribed, activeGeofences });
 
             // Filter already subscribed geofences
-            result.unsubscribed = result.unsubscribed.reduce(function(
+            result.unsubscribed = result.unsubscribed.reduce(function (
                 accumulator: Geofence[],
                 notSubbed,
             ) {
-                result.subscribed.forEach(subbed => {
+                result.subscribed.forEach((subbed) => {
                     if (JSON.stringify(subbed) !== JSON.stringify(notSubbed)) {
                         accumulator.push(notSubbed);
                     }
@@ -166,7 +166,7 @@ const getFollowersByGeofenceId = async (geofenceId: String, database: DBClient) 
 
         const followers: String[] = [];
 
-        result.rows.map(follower => followers.push(follower.username_follower));
+        result.rows.map((follower) => followers.push(follower.username_follower));
 
         return followers;
     });
@@ -180,7 +180,7 @@ const getFollowersByUsername = async (username: String, database: DBClient) =>
 
         const followers: String[] = [];
 
-        result.rows.map(follower => followers.push(follower.username_follower));
+        result.rows.map((follower) => followers.push(follower.username_follower));
 
         return followers;
     });

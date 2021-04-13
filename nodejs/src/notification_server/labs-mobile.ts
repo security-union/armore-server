@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import { SmsRequest } from "./sms-sender";
 
 export class LabsMobile {
@@ -11,7 +11,7 @@ export class LabsMobile {
     }
 
     sendSms = async (smsRequest: SmsRequest) => {
-        let url = `https://api.labsmobile.com/get/send.php?username=${this.username}&password=${this.password}&message=${smsRequest.body}&msisdn=${smsRequest.to}`
+        let url = `https://api.labsmobile.com/get/send.php?username=${this.username}&password=${this.password}&message=${smsRequest.body}&msisdn=${smsRequest.to}`;
         return await axios.get(url);
     };
 }
