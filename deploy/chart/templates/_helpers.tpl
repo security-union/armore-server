@@ -232,6 +232,22 @@ Twilio environment variables
 {{- end }}
 
 {{/*
+LabsMobile environment variables
+*/}}
+{{- define "armore.labsmobile" -}}
+- name: LABS_MOBILE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: "{{ include "armore.fullname" . }}-labsmobile"
+      key: username
+- name: LABS_MOBILE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: "{{ include "armore.fullname" . }}-labsmobile"
+      key: password
+{{- end }}
+
+{{/*
 Google Cloud Sql Environment Variables
 */}}
 {{- define "armore.cloudSql" -}}

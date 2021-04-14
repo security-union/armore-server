@@ -16,11 +16,7 @@ import getPort from "get-port";
 import omit from "lodash/omit";
 
 import { ClientConfig } from "pg";
-import {
-    JWT_HEADER_TOKEN,
-    PG_URL,
-    RABBIT_MQ_URL_WITH_CREDS,
-} from "../common/constants";
+import { JWT_HEADER_TOKEN, PG_URL, RABBIT_MQ_URL_WITH_CREDS } from "../common/constants";
 import { HTTPGateway } from "./index";
 import { dbmate_rebuild } from "../common/dbmate";
 import { AccessType, InvitationType } from "../common/types";
@@ -30,9 +26,7 @@ import {
     MOCK_PRIVATE_KEY,
     MOCK_PUBLIC_KEY,
 } from "../common/authentication";
-import {
-    registerPublicKey2,
-} from "../common/db/authentication";
+import { registerPublicKey2 } from "../common/db/authentication";
 
 export const removeFields = (object: any, paths: string[]): any => {
     if (Array.isArray(object)) {
@@ -504,5 +498,4 @@ describe("HTTPGateway", () => {
                 });
         }, 1000);
     });
-
 });

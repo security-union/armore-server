@@ -200,6 +200,7 @@ deployments:
       - rabbitMQ
       - sendgrid
       - twilio
+      - labsmobile
     command: ["yarn"]
     args: ["start"]
     image:

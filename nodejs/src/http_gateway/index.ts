@@ -33,16 +33,11 @@ import {
 } from "../common/db/geofences";
 import { createError } from "../common/sanitizer";
 import { QueueOptions, RabbitClient } from "../common/rabbit-helpers";
-import {
-    notificationsExchange,
-} from "../common/rabbit-constants";
+import { notificationsExchange } from "../common/rabbit-constants";
 import { withErrorBoundary } from "../common/localization/error-boundary";
-import {
-    translate,
-} from "../common/localization/localization";
+import { translate } from "../common/localization/localization";
 import { Trans } from "../common/localization/translation";
 import { changeAccessType } from "../common/db/social";
-
 
 const httpGatewayQueue: QueueOptions = {
     name: "http.producer",
@@ -248,5 +243,4 @@ export class HTTPGateway implements Service {
                 }
             }),
         );
-
 }

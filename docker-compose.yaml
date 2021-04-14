@@ -55,6 +55,7 @@ services:
             REDIS_HOST: redis
             REDIS_PORT: 6379
             TWILIO_NUMBER: "+15005550006" # This number is safe to use https://www.twilio.com/docs/iam/test-credentials
+            
 
     ws_gateway:
         command: yarn start

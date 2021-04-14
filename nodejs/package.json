@@ -36,6 +36,7 @@
         "@slack/webhook": "^5.0.3",
         "@types/flatbuffers": "1.9.1",
         "amqplib": "0.5.3",
+        "axios": "0.21.1",
         "bluebird": "3.7.1",
         "body-parser": "1.18.2",
         "errorhandler": "1.5.0",

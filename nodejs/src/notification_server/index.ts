@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 import { Request, Response } from "express";
+
 import sgMail from "@sendgrid/mail";
 import { MailData } from "@sendgrid/helpers/classes/mail";
 
@@ -20,10 +21,10 @@ import { ClientConfig } from "pg";
 import PushNotifications from "node-pushnotifications";
 import amqp from "amqplib";
 import { check, validationResult } from "express-validator";
-import { Twilio } from "twilio";
 
 import { DBClient } from "../common/db/db";
 import { Service } from "../common/service";
+import { SMSSender, SmsRequest } from "./sms-sender";
 import {
     IOS_BUNDLES,
     IOS_PLATFORM,
@@ -33,9 +34,6 @@ import {
     PUSH_NOTIFICATIONS_TOKEN_KEY_ID_IOS,
     PUSH_NOTIFICATIONS_TOKEN_TEAM_ID_IOS,
     EMAIL_SENDER,
-    TWILIO_ACCOUNT_SID,
-    TWILIO_AUTH_TOKEN,
-    TWILIO_NUMBER,
 } from "../common/constants";
 import router from "../common/router";
 import { logger } from "../common/logger";
@@ -50,22 +48,17 @@ import { RabbitClient, QueueOptions } from "../common/rabbit-helpers";
 import { notificationsExchange } from "../common/rabbit-constants";
 import { withErrorBoundary } from "../common/localization/error-boundary";
 
-interface PushNotificationsRequest {
-    deviceId: string;
-    data: PushNotifications.Data;
-}
-
-interface SmsRequest {
-    body: string;
-    to: string;
-}
-
 interface MailDataWithUsername {
     username: string | undefined;
     email: string | undefined;
     subject?: string;
     templateId?: string;
     dynamicTemplateData?: { [key: string]: any };
+}
+
+interface PushNotificationsRequest {
+    deviceId: string;
+    data: PushNotifications.Data;
 }
 
 export const notificationsServerQueue: QueueOptions = {
@@ -78,7 +71,7 @@ export class NotificationServer implements Service {
     router: core.Express;
     pgClient: DBClient;
     push: PushNotifications | undefined;
-    twilio: Twilio;
+    smsSender: SMSSender;
 
     constructor(httpPort: number, rabbitMQUrl: string, pgConfig: ClientConfig) {
         // 1. Setup RPC Client using RabbitMQ.
@@ -109,13 +102,8 @@ export class NotificationServer implements Service {
         // 3. Configure DB Client.
         this.pgClient = new DBClient(pgConfig);
 
-        if (TWILIO_ACCOUNT_SID !== "" && TWILIO_AUTH_TOKEN !== "" && TWILIO_NUMBER !== "") {
-            this.twilio = new Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-        } else {
-            throw new Error(
-                "Invalid configuration. Must set env vars TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_NUMBER",
-            );
-        }
+        // 4. Setup SMS Clients
+        this.smsSender = new SMSSender();
     }
 
     configureNotificationsClient = async (
@@ -144,7 +132,7 @@ export class NotificationServer implements Service {
                 const [emails, pushNotifications, smsRequests] = this.sortMessages(jsonArray);
                 const emailResults = await this.sendEmails(emails);
                 const pushNotificationsResults = await this.sendNotifications(pushNotifications);
-                const smsResults = await this.sendSmsMessages(smsRequests);
+                const smsResults = await this.smsSender.send(smsRequests);
                 logger.info(`pushNotificationsResults ${JSON.stringify(pushNotificationsResults)}`);
                 logger.info(`smsResults ${JSON.stringify(smsResults)}`);
                 logger.info(`emailResults ${JSON.stringify(emailResults)}`);
@@ -261,25 +249,6 @@ export class NotificationServer implements Service {
         });
         logger.info(`emails ${JSON.stringify(emailsToSend)}`);
         return Promise.allSettled(emailsToSend.map((m) => sgMail.send(m)));
-    };
-
-    sendSmsMessages = async (smsRequests: SmsRequest[]) => {
-        try {
-            return Promise.allSettled(
-                smsRequests.flatMap((msg) => {
-                    if (this.twilio !== undefined) {
-                        this.twilio.messages
-                            .create({ ...msg, from: TWILIO_NUMBER })
-                            .then((message) => logger.debug("Sent sms sid: ", message.sid))
-                            .catch((reason) => logger.error("Unable to send sms ", reason));
-                    } else {
-                        return Promise.reject("There is no twilio client");
-                    }
-                }),
-            );
-        } catch (e) {
-            return Promise.reject(e);
-        }
     };
 
     sendNotifications = async (notificationRequests: PushNotificationsRequest[]) => {

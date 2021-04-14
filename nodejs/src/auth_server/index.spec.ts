@@ -41,9 +41,6 @@ import { withDB } from "../common/db/db";
 import { registerPublicKey2, registerWithPhone } from "../common/db/authentication";
 import { waitForCondition } from "../common/test_utils";
 import { notificationsServerQueue } from "../notification_server";
-import { logger } from "../common/logger";
-import { after } from "lodash";
-import { assert } from "console";
 
 const storageOptions = {
     bucketName: "",
