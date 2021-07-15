@@ -11,5 +11,5 @@ data:
   proxy-body-size: 8m
   proxy-connect-timeout: "60"
   proxy-next-upstream-timeout: "60"
-  proxy-read-timeout: "60"
-  proxy-send-timeout: "60"
+  proxy-read-timeout: "3600"
+  proxy-send-timeout: "3600"
