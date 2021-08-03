@@ -9,7 +9,7 @@ jobs:
     container: node:12.14.1-alpine
     services:
       rabbitmq:
-        image: rabbitmq:3-management
+        image: rabbitmq:3.8.3-management
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
