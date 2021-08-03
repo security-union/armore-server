@@ -15,15 +15,15 @@ spec:
     spec:
       containers:
         - name: device-simulator
-          image: gcr.io/iot-garage-242501/device-simulator:6a1644c9a3c3250f4f4025f396d1746995ef61e0
+          image: gcr.io/iot-garage-242501/device-simulator:4433dcdbb5da57160be1c8f2b0a63f7f49f68574
           imagePullPolicy: Always
           resources:
             limits:
               memory: "100M"
-              cpu: "50m"
+              cpu: "100m"
             requests:
               memory: "25M"
-              cpu: "5m"
+              cpu: "25m"
           command: ["python"]
           args:
             [
@@ -36,11 +36,11 @@ spec:
           env:
             - name: LOG_LEVEL
               value: "INFO"
-            - name: SLACK_API_TOKEN
+            - name: SLACK_WEBHOOK
               valueFrom:
                 secretKeyRef:
                   name: device-simulator-accounts
-                  key: slack_token
+                  key: slack_webhook
             - name: USER_A_EMAIL
               valueFrom:
                 secretKeyRef:
