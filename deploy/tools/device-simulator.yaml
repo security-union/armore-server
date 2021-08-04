@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: device-simulator
-          image: gcr.io/iot-garage-242501/device-simulator:4433dcdbb5da57160be1c8f2b0a63f7f49f68574
+          image: gcr.io/iot-garage-242501/device-simulator:0897264e9b3e969f1f87b566edbef482c3f85fcf
           imagePullPolicy: Always
           resources:
             limits:
